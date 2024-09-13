@@ -1,9 +1,10 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import styled from 'styled-components';
 import { Resizable, ResizeCallback, ResizableProps } from 're-resizable';
 import Canvas from './components/Canvas';
 import ChatInterface from './components/ChatInterface';
 import FloatingIcon from './components/FloatingIcon';
+import { CanvasProvider } from './store/CanvasStore';
 
 const AppContainer = styled.div`
   width: 100%;
@@ -23,10 +24,32 @@ const ChatContainer = styled.div<{ position: { x: number; y: number } }>`
   left: ${props => props.position.x}px;
 `;
 
+interface Size {
+  width: number;
+  height: number;
+}
+
+interface Position {
+  x: number;
+  y: number;
+}
+
 const App: React.FC = () => {
-  const [size, setSize] = useState({ width: 300, height: 400 });
-  const [position, setPosition] = useState({ x: window.innerWidth - 320, y: 20 });
+  const [size, setSize] = useState<Size>(() => {
+    const savedSize = localStorage.getItem('appSize');
+    return savedSize ? JSON.parse(savedSize) : { width: 400, height: 300 };
+  });
+
+  const [position, setPosition] = useState<Position>(() => {
+    const savedPosition = localStorage.getItem('appPosition');
+    return savedPosition ? JSON.parse(savedPosition) : { x: 0, y: 0 };
+  });
+
+  const [previousPosition, setPreviousPosition] = useState({ x: 20, y: 20 });
   const [isOpen, setIsOpen] = useState(true);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
+  const [previousSize, setPreviousSize] = useState(size);
   const chatRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
@@ -40,7 +63,7 @@ const App: React.FC = () => {
 
     setSize(newSize);
 
-    // 如果调整大小的方向包含 'left'，则需要调整位置
+    // 如果整大小的方向包含 'left'，则需要调整位置
     if (direction.includes('left')) {
       setPosition(prevPos => ({
         ...prevPos,
@@ -106,13 +129,43 @@ const App: React.FC = () => {
     setIsOpen(!isOpen);
   };
 
+  const handleMinimize = () => {
+    if (!isMinimized) {
+      setPreviousSize(size);
+      setSize({ width: 240, height: 200 }); // 修改这里
+      setIsMinimized(true);
+      setIsMaximized(false);
+    } else {
+      setSize(previousSize);
+      setIsMinimized(false);
+    }
+  };
+
+  const handleMaximize = () => {
+    if (!isMaximized) {
+      setPreviousSize(size);
+      setPreviousPosition(position);
+      setSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+      setPosition({ x: 0, y: 0 }); // 设置左上角为 (0, 0)
+      setIsMaximized(true);
+      setIsMinimized(false);
+    } else {
+      setSize(previousSize);
+      setPosition(previousPosition);
+      setIsMaximized(false);
+    }
+  };
+
   const resizableProps: ResizableProps = {
-    size: size,
+    size: isMaximized ? { width: window.innerWidth, height: window.innerHeight } : size,
     onResizeStop: handleResize,
-    minWidth: 200,
+    minWidth: 240,
     minHeight: 200,
-    maxWidth: "calc(100vw - 40px)",
-    maxHeight: "calc(100vh - 40px)",
+    maxWidth: window.innerWidth,
+    maxHeight: window.innerHeight,
     bounds: "window",
     enable: {
       top: false,
@@ -126,21 +179,34 @@ const App: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      localStorage.setItem('appSize', JSON.stringify(size));
+      localStorage.setItem('appPosition', JSON.stringify(position));
+    };
+  }, [size, position]);
+
   return (
-    <AppContainer ref={containerRef}>
-      <CanvasContainer>
-        <Canvas />
-      </CanvasContainer>
-      {isOpen ? (
-        <ChatContainer ref={chatRef} position={position}>
-          <Resizable {...resizableProps}>
-            <ChatInterface onClose={toggleChat} />
-          </Resizable>
-        </ChatContainer>
-      ) : (
-        <FloatingIcon onClick={toggleChat} />
-      )}
-    </AppContainer>
+    <CanvasProvider>
+      <AppContainer ref={containerRef}>
+        <CanvasContainer>
+          <Canvas />
+        </CanvasContainer>
+        {isOpen ? (
+          <ChatContainer ref={chatRef} position={position} style={{ left: `${position.x}px`, top: `${position.y}px` }}>
+            <Resizable {...resizableProps} size={size}>
+              <ChatInterface 
+                onClose={toggleChat}
+                onMinimize={handleMinimize}
+                onMaximize={handleMaximize}
+              />
+            </Resizable>
+          </ChatContainer>
+        ) : (
+          <FloatingIcon onClick={toggleChat} />
+        )}
+      </AppContainer>
+    </CanvasProvider>
   );
 };
 
