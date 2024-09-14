@@ -67,6 +67,35 @@ function formatLocation(location: string): FormattedData {
   };
 }
 
-export function processDataForImageGeneration(inputData: string[]): FormattedData[] {
-  return inputData.map(data => formatData(data));
+export function processDataForImageGeneration(inputData: string): FormattedData {
+  // 正则表达式匹配 JSON 对象结构
+  const jsonRegex = /\{(?:[^{}]|(?:\{(?:[^{}]|(?:\{[^{}]*\}))*\}))*\}/;
+  const match = inputData.match(jsonRegex);
+  
+  if (match) {
+    try {
+      const jsonString = match[0];
+      const parsedData = JSON.parse(jsonString);
+      
+      const answer = parsedData.answer || '';
+      const params = parsedData.params || {};
+
+      return {
+        type: params.shapeType || 'unknown',
+        value: answer,
+        metadata: {
+          ...params
+        }
+      };
+    } catch (error) {
+      console.error('解析JSON时出错:', error);
+    }
+  }
+  
+  // 如果没有找到有效的JSON或解析失败，返回默认值
+  return {
+    type: 'unknown',
+    value: inputData,
+    metadata: {}
+  };
 }

@@ -155,7 +155,7 @@ const Canvas: React.FC = () => {
         onDragEnd={() => {}}
         onUpdateZIndex={() => {}}
       >
-        <ShapeThumbnail>
+        <ShapeThumbnail values={shapes}>
           {shapes.map(shape => (
             <TextToShape 
               key={shape.id}

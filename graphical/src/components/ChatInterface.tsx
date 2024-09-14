@@ -243,7 +243,7 @@ const HeaderActions = styled.div`
 `;
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMaximize }) => {
-  const [inputMessage, setInputMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState('一个三角形');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [streamingMessage, setStreamingMessage] = useState('');
