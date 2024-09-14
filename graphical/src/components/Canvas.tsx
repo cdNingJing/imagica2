@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { useCanvas } from '../store/CanvasStore';
+import { useShapeStore, ShapeData } from '../store/ShapeStore'; // 修改这行
 import TextToShape from './TextToShape';
 import DraggableComponent from './DraggableComponent';
-import ShapeThumbnail from './ShapeThumbnail';
+import ShapeThumbnail from './ShapeThumbnail';  // 添加这行
 
 const CanvasContainer = styled.div`
   width: 100%;
@@ -39,20 +40,10 @@ const ClockCanvasContainer = styled.div<{ x: number; y: number }>`
 
 const Canvas: React.FC = () => {
   const { items, updateItemPosition } = useCanvas();
-  const [draggedItem, setDraggedItem] = useState<{ id: string; startX: number; startY: number } | null>(null);
+  const { shapes, updateShapePosition, updateShapeLayer, updateShapeZIndex } = useShapeStore(); // 使用 useShapeStore
   const [clockPosition, setClockPosition] = useState({ x: 20, y: 20 });
   const clockCanvasRef = useRef<HTMLCanvasElement>(null);
-
-  const handleMouseDown = useCallback((e: React.MouseEvent, id: string) => {
-    const item = items.find(item => item.id === id);
-    if (item) {
-      setDraggedItem({
-        id,
-        startX: e.clientX - item.position.x,
-        startY: e.clientY - item.position.y
-      });
-    }
-  }, [items]);
+  const [draggedItem, setDraggedItem] = useState<{ id: string; startX: number; startY: number } | null>(null);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (draggedItem) {
@@ -134,42 +125,66 @@ const Canvas: React.FC = () => {
     return () => clearInterval(timer);
   }, [drawClock]);
 
+  const handleLayerChange = useCallback((id: string, newLayer: number) => {
+    updateShapeLayer(id, newLayer);
+  }, [updateShapeLayer]);
+
+  const handleDragEnd = useCallback((id: string, x: number, y: number) => {
+    updateShapePosition(id, x, y);
+  }, [updateShapePosition]);
+
+  const handleUpdateZIndex = useCallback((id: string, newZIndex: number) => {
+    updateShapeZIndex(id, newZIndex);
+  }, [updateShapeZIndex]);
+
+  const maxZIndex = useMemo(() => {
+    return Math.max(...shapes.map(shape => shape.zIndex || 0), 0);
+  }, [shapes]);
+
   return (
     <CanvasContainer
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      <DraggableComponent initialX={20} initialY={20}>
+      <DraggableComponent
+        initialX={0}
+        initialY={0}
+        initialZIndex={999}
+        maxZIndex={maxZIndex}
+        onDragEnd={() => {}}
+        onUpdateZIndex={() => {}}
+      >
         <ShapeThumbnail>
-          <TextToShape text="生成一个闹钟" shapeType="circle" />
-          <TextToShape text="React + D3" shapeType="rectangle" />
-          <TextToShape text="Awesome" shapeType="triangle" />
+          {shapes.map(shape => (
+            <TextToShape 
+              key={shape.id}
+              data={{
+                ...shape,
+                text: shape.text.substring(0, 10) + (shape.text.length > 10 ? '...' : ''),
+                width: (shape.width ?? 100) / 10,
+                height: (shape.height ?? 100) / 10
+              } as ShapeData}
+              isThumb={true}
+            />
+          ))}
         </ShapeThumbnail>
       </DraggableComponent>
-
-      {items.map(item => (
-        <CanvasItem
-          key={item.id}
-          x={item.position.x}
-          y={item.position.y}
-          onMouseDown={(e) => handleMouseDown(e, item.id)}
+      {shapes.map(shape => (
+        <DraggableComponent
+          key={shape.id}
+          initialX={shape.x}
+          initialY={shape.y}
+          initialZIndex={shape.zIndex}
+          maxZIndex={maxZIndex}
+          onDragEnd={(x, y) => handleDragEnd(shape.id, x, y)}
+          onUpdateZIndex={(newZIndex) => handleUpdateZIndex(shape.id, newZIndex)}
         >
-          <p>{item.content}</p>
-        </CanvasItem>
+          <TextToShape 
+            data={shape}
+          />
+        </DraggableComponent>
       ))}
-      <DraggableComponent initialX={clockPosition.x} initialY={clockPosition.y}>
-        <canvas ref={clockCanvasRef} width={300} height={300} />
-      </DraggableComponent>
-      <DraggableComponent initialX={20} initialY={20}>
-        <TextToShape text="生成一个闹钟" shapeType="circle" />
-      </DraggableComponent>
-      <DraggableComponent initialX={20} initialY={20}>
-        <TextToShape text="React + D3" shapeType="rectangle" />
-      </DraggableComponent>
-      <DraggableComponent initialX={20} initialY={20}>
-        <TextToShape text="Awesome" shapeType="triangle" />
-      </DraggableComponent>
     </CanvasContainer>
   );
 };
