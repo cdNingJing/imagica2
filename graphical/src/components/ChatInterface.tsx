@@ -275,7 +275,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMa
         message: inputMessage,
         onChunk: (chunk) => setStreamingMessage(prev => prev + chunk)
       });
-      const assistantMessage: Message = { role: 'assistant', content: response };
+      const assistantMessage: Message = { 
+        role: 'assistant', 
+        content: response.text // 使用 response.text 而不是整个 response 对象
+      };
       setMessages(prevMessages => [...prevMessages, assistantMessage]);
       setStreamingMessage('');
     } catch (error) {

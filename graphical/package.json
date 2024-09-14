@@ -12,12 +12,14 @@
     "@types/react-dom": "^18.3.0",
     "@types/styled-components": "^5.1.34",
     "axios": "^1.7.7",
+    "d3": "^7.9.0",
     "dotenv": "^16.4.5",
     "groq-sdk": "^0.7.0",
     "re-resizable": "^6.9.18",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-draggable": "^4.4.6",
+    "react-router-dom": "^6.26.2",
     "react-scripts": "5.0.1",
     "react-syntax-highlighter": "^15.5.0",
     "styled-components": "^6.1.13",
@@ -47,5 +49,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/createjs": "^0.0.32",
+    "@types/d3": "^7.4.3"
   }
 }
