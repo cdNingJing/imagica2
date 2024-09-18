@@ -81,6 +81,7 @@ const App: React.FC = () => {
   };
 
   const onMouseDown = useCallback((e: MouseEvent) => {
+    e.preventDefault();
     if ((e.target as HTMLElement).classList.contains('handle')) {
       isDraggingRef.current = true;
       startPosRef.current = {
@@ -91,6 +92,7 @@ const App: React.FC = () => {
   }, [position]);
 
   const onMouseMove = useCallback((e: MouseEvent) => {
+    e.preventDefault();
     if (!isDraggingRef.current || !containerRef.current || !chatRef.current) return;
 
     const containerRect = containerRef.current.getBoundingClientRect();
