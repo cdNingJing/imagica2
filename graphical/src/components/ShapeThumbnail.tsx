@@ -154,9 +154,10 @@ const FooterButton = styled.button`
 interface ShapeThumbnailProps {
   children: React.ReactNode;
   values: { text: string }[];
+  onVisibilityChange: (index: number, isVisible: boolean) => void;
 }
 
-const ShapeThumbnail: React.FC<ShapeThumbnailProps> = ({ children, values }) => {
+const ShapeThumbnail: React.FC<ShapeThumbnailProps> = ({ children, values, onVisibilityChange }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [hiddenItems, setHiddenItems] = useState<boolean[]>([]);
   const childrenArray = React.Children.toArray(children);
@@ -165,8 +166,14 @@ const ShapeThumbnail: React.FC<ShapeThumbnailProps> = ({ children, values }) => 
     setHiddenItems(prev => {
       const newHiddenItems = [...prev];
       newHiddenItems[index] = !newHiddenItems[index];
+      onVisibilityChange(index, !newHiddenItems[index]); // 调用父组件的回调
       return newHiddenItems;
     });
+  };
+
+  const handleFusionStart = () => {
+    const visibleItems = values.filter((_, index) => !hiddenItems[index]);
+    console.log('111 handleFusionStart', visibleItems);
   };
 
   return (
@@ -207,7 +214,7 @@ const ShapeThumbnail: React.FC<ShapeThumbnailProps> = ({ children, values }) => 
         ))}
       </ThumbnailContent>
       <ThumbnailFooter>
-        <FooterButton onClick={() => {/* 添加您的操作 */}}>
+        <FooterButton onClick={handleFusionStart}>
           {isCollapsed ? '+' : '开始融合'}
         </FooterButton>
       </ThumbnailFooter>

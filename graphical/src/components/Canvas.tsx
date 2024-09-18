@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { useCanvas } from '../store/CanvasStore';
-import { useShapeStore, ShapeData } from '../store/ShapeStore'; // 修改这行
+import { useShapeStore, ShapeData } from '../store/ShapeStore';
 import TextToShape from './TextToShape';
 import DraggableComponent from './DraggableComponent';
-import ShapeThumbnail from './ShapeThumbnail';  // 添加这行
+import ShapeThumbnail from './ShapeThumbnail';
 
 const CanvasContainer = styled.div`
   width: 100%;
@@ -40,10 +40,11 @@ const ClockCanvasContainer = styled.div<{ x: number; y: number }>`
 
 const Canvas: React.FC = () => {
   const { items, updateItemPosition } = useCanvas();
-  const { shapes, updateShapePosition, updateShapeLayer, updateShapeZIndex } = useShapeStore(); // 使用 useShapeStore
+  const { shapes, updateShapePosition, updateShapeLayer, updateShapeZIndex } = useShapeStore();
   const [clockPosition, setClockPosition] = useState({ x: 20, y: 20 });
   const clockCanvasRef = useRef<HTMLCanvasElement>(null);
   const [draggedItem, setDraggedItem] = useState<{ id: string; startX: number; startY: number } | null>(null);
+  const [visibleShapes, setVisibleShapes] = useState<string[]>(shapes.map(shape => shape.id));
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (draggedItem) {
@@ -141,6 +142,21 @@ const Canvas: React.FC = () => {
     return Math.max(...shapes.map(shape => shape.zIndex || 0), 0);
   }, [shapes]);
 
+  const handleVisibilityChange = (index: number, isVisible: boolean) => {
+    setVisibleShapes(prev => {
+      const newVisibleShapes = [...prev];
+      if (isVisible) {
+        newVisibleShapes.push(shapes[index].id);
+      } else {
+        const idx = newVisibleShapes.indexOf(shapes[index].id);
+        if (idx > -1) {
+          newVisibleShapes.splice(idx, 1);
+        }
+      }
+      return newVisibleShapes;
+    });
+  };
+
   return (
     <CanvasContainer
       onMouseMove={handleMouseMove}
@@ -155,7 +171,7 @@ const Canvas: React.FC = () => {
         onDragEnd={() => {}}
         onUpdateZIndex={() => {}}
       >
-        <ShapeThumbnail values={shapes}>
+        <ShapeThumbnail values={shapes} onVisibilityChange={handleVisibilityChange}>
           {shapes.map(shape => (
             <TextToShape 
               key={shape.id}
@@ -171,19 +187,21 @@ const Canvas: React.FC = () => {
         </ShapeThumbnail>
       </DraggableComponent>
       {shapes.map(shape => (
-        <DraggableComponent
-          key={shape.id}
-          initialX={shape.x}
-          initialY={shape.y}
-          initialZIndex={shape.zIndex}
-          maxZIndex={maxZIndex}
-          onDragEnd={(x, y) => handleDragEnd(shape.id, x, y)}
-          onUpdateZIndex={(newZIndex) => handleUpdateZIndex(shape.id, newZIndex)}
-        >
-          <TextToShape 
-            data={shape}
-          />
-        </DraggableComponent>
+        visibleShapes.includes(shape.id) && (
+          <DraggableComponent
+            key={shape.id}
+            initialX={shape.x}
+            initialY={shape.y}
+            initialZIndex={shape.zIndex}
+            maxZIndex={maxZIndex}
+            onDragEnd={(x, y) => handleDragEnd(shape.id, x, y)}
+            onUpdateZIndex={(newZIndex) => handleUpdateZIndex(shape.id, newZIndex)}
+          >
+            <TextToShape 
+              data={shape}
+            />
+          </DraggableComponent>
+        )
       ))}
     </CanvasContainer>
   );
