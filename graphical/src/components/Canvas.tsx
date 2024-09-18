@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo, useEffect } from 'react';
 import { useCanvas } from '../store/CanvasStore';
 import { useShapeStore } from '../store/ShapeStore';
 import ShapeThumbnail from './ShapeThumbnail';
@@ -10,8 +10,9 @@ import TextToShape from './TextToShape';
 const Canvas: React.FC = () => {
   const { updateItemPosition } = useCanvas();
   const { shapes, updateShapePosition, updateShapeLayer, updateShapeZIndex } = useShapeStore();
+
   const [draggedItem, setDraggedItem] = useState<{ id: string; startX: number; startY: number } | null>(null);
-  const [visibleShapes, setVisibleShapes] = useState<string[]>(shapes.map(shape => shape.id));
+  const [visibleShapes, setVisibleShapes] = useState<Set<string>>(new Set(shapes.map(shape => shape.id)));
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (draggedItem) {
@@ -43,14 +44,11 @@ const Canvas: React.FC = () => {
 
   const handleVisibilityChange = (index: number, isVisible: boolean) => {
     setVisibleShapes(prev => {
-      const newVisibleShapes = [...prev];
+      const newVisibleShapes = new Set(prev);
       if (isVisible) {
-        newVisibleShapes.push(shapes[index].id);
+        newVisibleShapes.add(shapes[index].id);
       } else {
-        const idx = newVisibleShapes.indexOf(shapes[index].id);
-        if (idx > -1) {
-          newVisibleShapes.splice(idx, 1);
-        }
+        newVisibleShapes.delete(shapes[index].id);
       }
       return newVisibleShapes;
     });

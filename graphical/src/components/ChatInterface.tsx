@@ -305,6 +305,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMa
     addTestItem(code);
   }, [addTestItem]); // 添加 addTestItem 到依赖数组
 
+  const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    
+    // 确保输入框获得焦点
+    (e.target as HTMLInputElement).focus();
+  };
+
+  const handleInputMouseDown = (e: React.MouseEvent<HTMLInputElement>) => {
+    e.stopPropagation(); // 阻止事件冒泡
+  };
+
   return (
     <ChatWindow>
       <ChatHeader className="handle">
@@ -344,6 +355,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMa
           value={inputMessage}
           onChange={handleInputChange}
           onKeyPress={handleKeyPress}
+          onClick={handleInputClick}
+          onMouseDown={handleInputMouseDown}
           placeholder="输入消息..."
           disabled={isLoading}
         />
