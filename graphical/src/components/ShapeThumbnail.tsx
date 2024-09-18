@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-
+import { fusionShapes } from '../api/groqApi';
 // 修改 ThumbnailContainer 的定义
 const ThumbnailContainer = styled.div<{ $isCollapsed: boolean }>`
   background-color: #2c2c2c;
@@ -153,7 +153,7 @@ const FooterButton = styled.button`
 
 interface ShapeThumbnailProps {
   children: React.ReactNode;
-  values: { text: string }[];
+  values: { text: string; shapeType?: string }[]; // 添加 shapeType
   onVisibilityChange: (index: number, isVisible: boolean) => void;
 }
 
@@ -171,9 +171,18 @@ const ShapeThumbnail: React.FC<ShapeThumbnailProps> = ({ children, values, onVis
     });
   };
 
-  const handleFusionStart = () => {
+  const handleFusionStart = async () => {
     const visibleItems = values.filter((_, index) => !hiddenItems[index]);
-    console.log('111 handleFusionStart', visibleItems);
+    const extractedData = visibleItems.map((item) => ({
+      text: item.text,
+      shapeType: item.shapeType
+    }));
+    const textResult = JSON.stringify(extractedData, null, 2);
+    const response = await fusionShapes({
+      message: textResult,
+      onChunk: (chunk) => {}
+    });
+    console.log('融合结果：', response);
   };
 
   return (
