@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { sendMessageToGroq } from '../api/groqApi';
 import ToastMessage from './ToastMessage';
 import { useCanvas } from '../store/CanvasStore';
+import { generateImage } from '../api/openaiApi';
 
 // 添加新的样式组件
 const CodeBlock = styled.pre`
@@ -243,7 +244,7 @@ const HeaderActions = styled.div`
 `;
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMaximize }) => {
-  const [inputMessage, setInputMessage] = useState('一个三角形');
+  const [inputMessage, setInputMessage] = useState('这个周末去哪里好');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [streamingMessage, setStreamingMessage] = useState('');
@@ -261,6 +262,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMa
     setInputMessage(e.target.value);
   };
 
+  const handleGenerateImage = async () => {
+    try {
+      const description = "一只在阳光下玩耍的可爱小狗";
+      const imageUrls = await generateImage(description);
+      console.log("生成的图片URL:", imageUrls);
+      // 处理生成的图片URL，例如在UI中显示图片
+    } catch (error) {
+      console.error("生成图片失败:", error);
+      // 处理错误，例如显示错误消息
+    }
+  };
+
   const handleSendMessage = useCallback(async () => {
     if (!inputMessage.trim()) return;
 
@@ -273,7 +286,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMa
     try {
       const response = await sendMessageToGroq({
         message: inputMessage,
-        onChunk: (chunk) => setStreamingMessage(prev => prev + chunk)
+        onChunk: (chunk: any) => setStreamingMessage(prev => prev + chunk)
       });
       const assistantMessage: Message = { 
         role: 'assistant', 
