@@ -95,56 +95,56 @@ export const sendMessageToGroq = async ({
     const responseContent = response.data.choices[0].message.content
     
     // 使用 processDataForImageGeneration 函数处理数据
-    const structuredData = [processDataForImageGeneration(responseContent)];
+    // const structuredData = [processDataForImageGeneration(responseContent)];
 
-    console.log('111 structuredData', structuredData);
+    console.log('111 structuredData', responseContent);
     // 处理 structuredData
-    const { shapes, addShape } = useShapeStore.getState();
-    const maxId = shapes.reduce((max, shape) => Math.max(max, parseInt(shape.id)), 0);
+    // const { shapes, addShape } = useShapeStore.getState();
+    // const maxId = shapes.reduce((max, shape) => Math.max(max, parseInt(shape.id)), 0);
     
-    structuredData.forEach((data, index) => {
-      if (data && typeof data === 'object') {
-        const metadata = data?.metadata || {};
-        const x = getValidNumber(metadata?.x, Math.random() * 500);
-        const y = getValidNumber(metadata?.y, Math.random() * 500);
-        console.log('Calculated x, y:', x, y);
+    // structuredData.forEach((data, index) => {
+    //   if (data && typeof data === 'object') {
+    //     const metadata = data?.metadata || {};
+    //     const x = getValidNumber(metadata?.x, Math.random() * 500);
+    //     const y = getValidNumber(metadata?.y, Math.random() * 500);
+    //     console.log('Calculated x, y:', x, y);
 
-        const newShape = {
-          id: (maxId + index + 1).toString(),
-          text: data.value || '',
-          shapeType: data.type as 'circle' | 'rectangle' | 'triangle' | 'ellipse' | 'pentagon' | 'hexagon' | 'star' | 'diamond',
-          layer: 0,
-          x,
-          y,
-          zIndex: shapes.length + index,
-          size: getValidNumber(metadata?.size, 50),
-          color: metadata.color || '#000000',
-          fontFamily: metadata?.fontFamily || 'Arial',
-          fontSize: getValidNumber(metadata?.fontSize, 14),
-          fontColor: metadata?.fontColor || '#000000',
-        };
+    //     const newShape = {
+    //       id: (maxId + index + 1).toString(),
+    //       text: data.value || '',
+    //       shapeType: data.type as 'circle' | 'rectangle' | 'triangle' | 'ellipse' | 'pentagon' | 'hexagon' | 'star' | 'diamond',
+    //       layer: 0,
+    //       x,
+    //       y,
+    //       zIndex: shapes.length + index,
+    //       size: getValidNumber(metadata?.size, 50),
+    //       color: metadata.color || '#000000',
+    //       fontFamily: metadata?.fontFamily || 'Arial',
+    //       fontSize: getValidNumber(metadata?.fontSize, 14),
+    //       fontColor: metadata?.fontColor || '#000000',
+    //     };
 
-        console.log('New shape before spreading metadata:', newShape);
+    //     console.log('New shape before spreading metadata:', newShape);
 
-        const finalShape: any = { ...newShape };
-        if (metadata) {
-          Object.keys(metadata).forEach(key => {
-            if (!finalShape.hasOwnProperty(key)) {
-              finalShape[key] = metadata[key];
-            }
-          });
-        }
+    //     const finalShape: any = { ...newShape };
+    //     if (metadata) {
+    //       Object.keys(metadata).forEach(key => {
+    //         if (!finalShape.hasOwnProperty(key)) {
+    //           finalShape[key] = metadata[key];
+    //         }
+    //       });
+    //     }
 
-        console.log('Final shape after manual merging:', finalShape);
-        addShape(finalShape);
-      } else {
-        console.warn('Invalid data structure received:', data);
-      }
-    });
+    //     console.log('Final shape after manual merging:', finalShape);
+    //     addShape(finalShape);
+    //   } else {
+    //     console.warn('Invalid data structure received:', data);
+    //   }
+    // });
 
     return {
-      text: 'Ok',
-      structuredData: structuredData
+      text: responseContent,
+      structuredData: responseContent
     };
   } catch (error) {
     console.error('调用 Groq API 时出错:', error);
