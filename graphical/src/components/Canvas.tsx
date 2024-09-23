@@ -6,6 +6,7 @@ import ShapeList from './ShapeList';
 import CanvasBackground from './CanvasBackground';
 import DraggableComponent from './DraggableComponent';
 import TextToShape from './TextToShape';
+import { ScrollableComponent } from './ScrollableComponent';
 
 const Canvas: React.FC = () => {
   const { updateItemPosition } = useCanvas();
@@ -85,6 +86,16 @@ const Canvas: React.FC = () => {
             />
           ))}
         </ShapeThumbnail>
+      </DraggableComponent>
+      <DraggableComponent
+        initialX={0}
+        initialY={0}
+        initialZIndex={999}
+        maxZIndex={maxZIndex}
+        onDragEnd={() => {}}
+        onUpdateZIndex={() => {}}
+      >
+        <ScrollableComponent />
       </DraggableComponent>
       <ShapeList
         shapes={shapes}

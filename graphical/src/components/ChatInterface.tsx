@@ -244,7 +244,7 @@ const HeaderActions = styled.div`
 `;
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMaximize }) => {
-  const [inputMessage, setInputMessage] = useState('这个周末去哪里好');
+  const [inputMessage, setInputMessage] = useState('生成的图片');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [streamingMessage, setStreamingMessage] = useState('');
@@ -264,7 +264,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMa
 
   const handleGenerateImage = async () => {
     try {
-      const description = "一只在阳光下玩耍的可爱小狗";
+      const description = `Generate a line chart with the following details:
+- Description: The chart shows that the population has grown from about 2.5 billion in 1950 to about 8 billion in 2023 and is projected to reach about 9.7 billion by 2050. The growth curve has accelerated significantly in recent decades, especially in Asia and Africa.`;
       const imageUrls = await generateImage(description);
       console.log("生成的图片URL:", imageUrls);
       // 处理生成的图片URL，例如在UI中显示图片
@@ -275,6 +276,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMa
   };
 
   const handleSendMessage = useCallback(async () => {
+    handleGenerateImage()
+    return;
     if (!inputMessage.trim()) return;
 
     const userMessage: Message = { role: 'user', content: inputMessage };
