@@ -4,7 +4,7 @@ import { sendMessageToGroq } from '../api/groqApi';
 import ToastMessage from './ToastMessage';
 import { useCanvas } from '../store/CanvasStore';
 import { generateImage } from '../api/openaiApi';
-
+import { useDataStore } from '../store/data-store';
 // 添加新的样式组件
 const CodeBlock = styled.pre`
   background-color: #282c34;
@@ -244,13 +244,14 @@ const HeaderActions = styled.div`
 `;
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMaximize }) => {
-  const [inputMessage, setInputMessage] = useState('生成的图片');
+  const [inputMessage, setInputMessage] = useState('我想看看大海');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [streamingMessage, setStreamingMessage] = useState('');
   const chatBodyRef = useRef<HTMLDivElement>(null);
   const [isMaximized, setIsMaximized] = useState(false);
   const { addTestItem } = useCanvas(); // 移动到组件内部
+  const { data, setData } = useDataStore();
 
   useEffect(() => {
     if (chatBodyRef.current) {
@@ -262,13 +263,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMa
     setInputMessage(e.target.value);
   };
 
-  const handleGenerateImage = async () => {
+  const handleGenerateImage = async (value: string) => {
     try {
-      const description = `Generate a line chart with the following details:
-- Description: The chart shows that the population has grown from about 2.5 billion in 1950 to about 8 billion in 2023 and is projected to reach about 9.7 billion by 2050. The growth curve has accelerated significantly in recent decades, especially in Asia and Africa.`;
-      const imageUrls = await generateImage(description);
+      const imageUrls = await generateImage(value);
       console.log("生成的图片URL:", imageUrls);
       // 处理生成的图片URL，例如在UI中显示图片
+
+      setData({
+        description: value,
+        imageUrls: imageUrls.join(','),
+      });
     } catch (error) {
       console.error("生成图片失败:", error);
       // 处理错误，例如显示错误消息
@@ -276,8 +280,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMa
   };
 
   const handleSendMessage = useCallback(async () => {
-    handleGenerateImage()
-    return;
+    
     if (!inputMessage.trim()) return;
 
     const userMessage: Message = { role: 'user', content: inputMessage };
@@ -295,6 +298,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMa
         role: 'assistant', 
         content: response.text // 使用 response.text 而不是整个 response 对象
       };
+      handleGenerateImage(response.text);
       setMessages(prevMessages => [...prevMessages, assistantMessage]);
       setStreamingMessage('');
     } catch (error) {

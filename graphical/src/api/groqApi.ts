@@ -25,6 +25,9 @@ const getValidNumber = (value: any, defaultValue: number): number => {
   return !isNaN(num) ? num : defaultValue;
 };
 
+let previousQuestion = '';
+let previousAnswer = '';
+
 export const sendMessageToGroq = async ({
   message,
   onChunk
@@ -41,40 +44,13 @@ export const sendMessageToGroq = async ({
         messages: [
           {
             role: 'system',
-            content: `你是一个专业的智能对话系统的工作流程，该系统能够理解用户意图，收集必要信息，并提供相应的建议或解决方案。
-            这个过程：
-            理解用户意图
-            分析用户输入的问题或陈述
-            识别核心需求和潜在目标
-            收集上下文信息
-            检查已有的用户信息（如位置、偏好等）
-            如果缺少关键信息，主动询问用户
-            分析和推理
-            基于收集到的信息进行分析
-            考虑可能的选项和建议
-            提供建议或解决方案
-            根据分析结果给出针对性的建议
-            确保建议符合用户的具体情况和需求
-            确认和反馈
-            询问用户是否满意建议
-            如需要，进一步调整或提供更多选项
-            示例流程：
-            用户：这个周末去哪里好？
-            系统：
-            理解意图：用户在寻找周末出行建议。
-            收集信息：
-            "为了给您提供最合适的建议，我需要知道您当前所在的位置。方便告诉我您现在在哪个城市吗？"
-            用户：我在北京。
-            系统：
-            分析：考虑北京及周边的周末去处。
-            提供建议：
-            "考虑到您在北京，这个周末有几个不错的选择：
-            1. 游览长城（如慕田峪长城）
-            2. 参观798艺术区
-            逛逛什刹海和南锣鼓巷
-            去颐和园放松一天
-            这些地方各有特色，适合周末游玩。您对哪个更感兴趣？"
-            5. 确认： "如果您需要更多建议或者对某个地方有具体问题，随时告诉我。"
+            content: `You are a professional smart home steward, you need to guess what others are saying, and then give short and precise advice.
+              - !!!I hope you can return Chinese when the user enters Chinese!!!
+              - !!!and English when the user enters English!!!
+              - Don't add any explanation, don't add any explanation, don't add any explanation.
+              - I need you to think of several answers when you return the question and choose the one with the highest probability.
+              - Your return needs to be logical and practical.
+              - When I want to go somewhere, I want you to map it out.
             `
           },
           {
@@ -92,55 +68,11 @@ export const sendMessageToGroq = async ({
       }
     );
 
-    const responseContent = response.data.choices[0].message.content
-    
-    // 使用 processDataForImageGeneration 函数处理数据
-    // const structuredData = [processDataForImageGeneration(responseContent)];
+    const responseContent = response.data.choices[0].message.content;
 
-    console.log('111 structuredData', responseContent);
-    // 处理 structuredData
-    // const { shapes, addShape } = useShapeStore.getState();
-    // const maxId = shapes.reduce((max, shape) => Math.max(max, parseInt(shape.id)), 0);
-    
-    // structuredData.forEach((data, index) => {
-    //   if (data && typeof data === 'object') {
-    //     const metadata = data?.metadata || {};
-    //     const x = getValidNumber(metadata?.x, Math.random() * 500);
-    //     const y = getValidNumber(metadata?.y, Math.random() * 500);
-    //     console.log('Calculated x, y:', x, y);
-
-    //     const newShape = {
-    //       id: (maxId + index + 1).toString(),
-    //       text: data.value || '',
-    //       shapeType: data.type as 'circle' | 'rectangle' | 'triangle' | 'ellipse' | 'pentagon' | 'hexagon' | 'star' | 'diamond',
-    //       layer: 0,
-    //       x,
-    //       y,
-    //       zIndex: shapes.length + index,
-    //       size: getValidNumber(metadata?.size, 50),
-    //       color: metadata.color || '#000000',
-    //       fontFamily: metadata?.fontFamily || 'Arial',
-    //       fontSize: getValidNumber(metadata?.fontSize, 14),
-    //       fontColor: metadata?.fontColor || '#000000',
-    //     };
-
-    //     console.log('New shape before spreading metadata:', newShape);
-
-    //     const finalShape: any = { ...newShape };
-    //     if (metadata) {
-    //       Object.keys(metadata).forEach(key => {
-    //         if (!finalShape.hasOwnProperty(key)) {
-    //           finalShape[key] = metadata[key];
-    //         }
-    //       });
-    //     }
-
-    //     console.log('Final shape after manual merging:', finalShape);
-    //     addShape(finalShape);
-    //   } else {
-    //     console.warn('Invalid data structure received:', data);
-    //   }
-    // });
+    // 保存当前问题和答案
+    previousQuestion = message;
+    previousAnswer = responseContent;
 
     return {
       text: responseContent,
@@ -151,6 +83,12 @@ export const sendMessageToGroq = async ({
     throw error;
   }
 };
+
+// 获取上一次的问题和答案
+export const getPreviousQA = () => ({
+  question: previousQuestion,
+  answer: previousAnswer
+});
 
 export const fusionShapes = async ({
   message,
