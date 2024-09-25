@@ -5,6 +5,8 @@ import ToastMessage from './ToastMessage';
 import { useCanvas } from '../store/CanvasStore';
 import { generateImage } from '../api/openaiApi';
 import { useDataStore } from '../store/data-store';
+import { generateChatResponse } from '../api/openaiApiChat';
+
 // 添加新的样式组件
 const CodeBlock = styled.pre`
   background-color: #282c34;
@@ -251,7 +253,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMa
   const chatBodyRef = useRef<HTMLDivElement>(null);
   const [isMaximized, setIsMaximized] = useState(false);
   const { addTestItem } = useCanvas(); // 移动到组件内部
-  const { data, setData } = useDataStore();
+  const { updateImageUrls, updateDescription } = useDataStore();
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
 
   useEffect(() => {
     if (chatBodyRef.current) {
@@ -265,17 +268,27 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMa
 
   const handleGenerateImage = async (value: string) => {
     try {
-      const imageUrls = await generateImage(value);
-      console.log("生成的图片URL:", imageUrls);
-      // 处理生成的图片URL，例如在UI中显示图片
+      console.log("开始获取图片");
+      const urls = await generateImage(value);
+      console.log("获取到的图片URL:", urls);
+      setImageUrls(urls);
 
-      setData({
-        description: value,
-        imageUrls: imageUrls.join(','),
-      });
+      updateImageUrls(urls);
+      updateDescription(value);
     } catch (error) {
       console.error("生成图片失败:", error);
       // 处理错误，例如显示错误消息
+    }
+  };
+
+  const handleGenerateChatResponse = async (value: string) => {
+    try {
+      console.log("开始生成聊天回复");
+      const response = await generateChatResponse(value);
+      console.log("生成的聊天回复:", response);
+      updateDescription(response);
+    } catch (error) {
+      console.error("生成聊天回复失败:", error);
     }
   };
 
@@ -298,7 +311,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, onMinimize, onMa
         role: 'assistant', 
         content: response.text // 使用 response.text 而不是整个 response 对象
       };
-      handleGenerateImage(response.text);
+      // handleGenerateImage(response.text);
+      handleGenerateChatResponse(response.text);
       setMessages(prevMessages => [...prevMessages, assistantMessage]);
       setStreamingMessage('');
     } catch (error) {

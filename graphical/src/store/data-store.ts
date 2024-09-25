@@ -1,23 +1,29 @@
-import { useState, useEffect } from 'react';
+import create from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface DataStore {
-  imageUrls: string;
+  imageUrls: string[];
   description: string;
+  updateImageUrls: (newImageUrls: string[]) => void;
+  updateDescription: (newDescription: string) => void;
+  resetStore: () => void;
 }
 
-function useDataStore() {
-  const [data, setData] = useState<DataStore>(() => {
-    // 从 localStorage 中获取初始数据
-    const savedData = localStorage.getItem('dataStore');
-    return savedData ? JSON.parse(savedData) : { imageUrls: '', description: '' };
-  });
+const initialState = {
+  imageUrls: [],
+  description: '',
+};
 
-  useEffect(() => {
-    // 将数据保存到 localStorage
-    localStorage.setItem('dataStore', JSON.stringify(data));
-  }, [data]);
-
-  return { data, setData };
-}
-
-export { useDataStore };
+export const useDataStore = create<DataStore>()(
+  persist(
+    (set) => ({
+      ...initialState,
+      updateImageUrls: (newImageUrls) => set({ imageUrls: newImageUrls }),
+      updateDescription: (newDescription) => set({ description: newDescription }),
+      resetStore: () => set(initialState),
+    }),
+    {
+      name: 'data-store', // 用于 localStorage 的 key
+    }
+  )
+);

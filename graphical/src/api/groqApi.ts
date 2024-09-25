@@ -37,6 +37,9 @@ export const sendMessageToGroq = async ({
 }): Promise<{ text: string, structuredData: FormattedData[] }> => {
   try {
     const enhancedMessage = createEnhancedMessage(message);
+    
+    // - !!!I hope you can return Chinese when the user enters Chinese!!!
+    // - !!!and English when the user enters English!!!
 
     const response = await axios.post(
       API_URL,
@@ -45,8 +48,7 @@ export const sendMessageToGroq = async ({
           {
             role: 'system',
             content: `You are a professional smart home steward, you need to guess what others are saying, and then give short and precise advice.
-              - !!!I hope you can return Chinese when the user enters Chinese!!!
-              - !!!and English when the user enters English!!!
+              - you must always reply in Chinese
               - Don't add any explanation, don't add any explanation, don't add any explanation.
               - I need you to think of several answers when you return the question and choose the one with the highest probability.
               - Your return needs to be logical and practical.
