@@ -39,18 +39,18 @@ export const useShapeStore = create<ShapeStore>((set) => ({
       fontSize: 16,
       fontFamily: 'Arial'
     },
-    // { 
-    //   id: '2', 
-    //   text: '矩形', 
-    //   shapeType: 'rectangle', 
-    //   layer: 0, 
-    //   x: 150, 
-    //   y: 20, 
-    //   zIndex: 1,
-    //   color: '#33FF57',
-    //   fontSize: 18,
-    //   fontFamily: 'Helvetica'
-    // },
+    { 
+      id: '2', 
+      text: '矩形', 
+      shapeType: 'rectangle', 
+      layer: 0, 
+      x: 150, 
+      y: 20, 
+      zIndex: 1,
+      color: '#33FF57',
+      fontSize: 18,
+      fontFamily: 'Helvetica'
+    },
     // { 
     //   id: '3', 
     //   text: '三角形', 

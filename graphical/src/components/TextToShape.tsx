@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
+import './TextToShape.css';
+import { ScrollableComponent } from './ScrollableComponent';
 
 export interface ShapeData {
   text: string;
@@ -143,9 +145,7 @@ const TextToShape: React.FC<TextToShapeProps> = ({ data, isThumb = false }) => {
     const svgWidth = shapeWidth + padding * 2;
     const svgHeight = shapeHeight + padding * 2;
 
-    svg.attr('width', svgWidth)
-       .attr('height', svgHeight)
-       .attr('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+    svg.attr('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
 
     const centerX = (svgWidth - shapeWidth) / 2;
     const centerY = (svgHeight - shapeHeight) / 2;
@@ -154,13 +154,28 @@ const TextToShape: React.FC<TextToShapeProps> = ({ data, isThumb = false }) => {
     setDimensions({ width: svgWidth, height: svgHeight });
   }, [data, isThumb]);
 
+  if(isThumb) {
+    return (
+      <svg 
+        ref={svgRef} 
+        width={30} 
+        height={30}
+        style={{ overflow: 'visible' }}
+      />
+    )
+  }
   return (
-    <svg 
-      ref={svgRef} 
-      width={dimensions.width || 0} 
-      height={dimensions.height || 0}
-      style={{ overflow: 'visible' }}
-    />
+    <div className='container'>
+      <div className='shape-list-item'>
+        <svg 
+          ref={svgRef} 
+          width={40} 
+          height={40}
+          style={{ overflow: 'visible' }}
+        />
+      </div>
+      <ScrollableComponent />
+    </div>
   );
 };
 

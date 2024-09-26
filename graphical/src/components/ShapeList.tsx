@@ -2,7 +2,6 @@ import React from 'react';
 import { ShapeData } from '../store/ShapeStore';
 import DraggableComponent from './DraggableComponent';
 import TextToShape from './TextToShape';
-import { ScrollableComponent } from './ScrollableComponent';
 
 interface ShapeListProps {
   shapes: ShapeData[];
@@ -26,7 +25,6 @@ const ShapeList: React.FC<ShapeListProps> = ({ shapes, visibleShapes, maxZIndex,
           onUpdateZIndex={(newZIndex) => onUpdateZIndex(shape.id, newZIndex)}
         >
           <TextToShape data={shape} />
-          <ScrollableComponent />
         </DraggableComponent>
       ))}
     </>

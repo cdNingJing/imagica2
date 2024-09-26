@@ -61,42 +61,23 @@ const Canvas: React.FC = () => {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      <DraggableComponent
-        initialX={0}
-        initialY={0}
-        initialZIndex={999}
-        maxZIndex={maxZIndex}
-        onDragEnd={() => {}}
-        onUpdateZIndex={() => {}}
+      <ShapeThumbnail
+        values={shapes}
+        onVisibilityChange={handleVisibilityChange}
       >
-        <ShapeThumbnail
-          values={shapes}
-          onVisibilityChange={handleVisibilityChange}
-        >
-          {shapes.map(shape => (
-            <TextToShape 
-              key={shape.id}
-              data={{
-                ...shape,
-                text: shape.text.substring(0, 10) + (shape.text.length > 10 ? '...' : ''),
-                width: (shape.width ?? 100) / 10,
-                height: (shape.height ?? 100) / 10
-              }}
-              isThumb={true}
-            />
-          ))}
-        </ShapeThumbnail>
-      </DraggableComponent>
-      {/* <DraggableComponent
-        initialX={0}
-        initialY={0}
-        initialZIndex={999}
-        maxZIndex={maxZIndex}
-        onDragEnd={() => {}}
-        onUpdateZIndex={() => {}}
-      >
-        <ScrollableComponent />
-      </DraggableComponent> */}
+        {shapes.map(shape => (
+          <TextToShape
+            key={shape.id}
+            data={{
+              ...shape,
+              text: shape.text.substring(0, 10) + (shape.text.length > 10 ? '...' : ''),
+              width: (shape.width ?? 100) / 10,
+              height: (shape.height ?? 100) / 10
+            }}
+            isThumb={true}
+          />
+        ))}
+      </ShapeThumbnail>
       <ShapeList
         shapes={shapes}
         visibleShapes={visibleShapes}
