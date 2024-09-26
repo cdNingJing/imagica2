@@ -87,7 +87,7 @@ const Canvas: React.FC = () => {
           ))}
         </ShapeThumbnail>
       </DraggableComponent>
-      <DraggableComponent
+      {/* <DraggableComponent
         initialX={0}
         initialY={0}
         initialZIndex={999}
@@ -96,7 +96,7 @@ const Canvas: React.FC = () => {
         onUpdateZIndex={() => {}}
       >
         <ScrollableComponent />
-      </DraggableComponent>
+      </DraggableComponent> */}
       <ShapeList
         shapes={shapes}
         visibleShapes={visibleShapes}

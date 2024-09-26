@@ -131,7 +131,6 @@ const TextToShape: React.FC<TextToShapeProps> = ({ data, isThumb = false }) => {
         .attr('font-size', fontSize ? `${fontSize * scaleFactor}px` : `${12 * scaleFactor}px`)
         .attr('font-family', fontFamily || 'sans-serif')
         .attr('fill', fontColor || '#000000')
-        .text(text);
 
       const textBBox = (textElement.node() as SVGTextElement)?.getBBox();
       if (textBBox) {
