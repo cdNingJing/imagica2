@@ -158,8 +158,8 @@ const TextToShape: React.FC<TextToShapeProps> = ({ data, isThumb = false }) => {
     return (
       <svg 
         ref={svgRef} 
-        width={30} 
-        height={30}
+        width={25} 
+        height={25}
         style={{ overflow: 'visible' }}
       />
     )
@@ -174,7 +174,7 @@ const TextToShape: React.FC<TextToShapeProps> = ({ data, isThumb = false }) => {
           style={{ overflow: 'visible' }}
         />
       </div>
-      <ScrollableComponent />
+      <ScrollableComponent data={data} />
     </div>
   );
 };

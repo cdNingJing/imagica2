@@ -23,9 +23,15 @@ interface ChatCompletionResponse {
   };
 }
 
-export const generateChatResponse = async (messages: any): Promise<string> => {
+export const generateChatResponse = async (messages: any, content?: string): Promise<string> => {
   console.log("开始生成聊天回复，时间:", new Date().toISOString());
-
+  const contents = content ?? `You are a professional smart home steward, you need to guess what others are saying, and then give short and precise advice.
+  - you must always reply in Chinese
+  - Don't add any explanation, don't add any explanation, don't add any explanation.
+  - I need you to think of several answers when you return the question and choose the one with the highest probability.
+  - Your return needs to be logical and practical.
+  - When I want to go somewhere, I want you to map it out.
+  `
   try {
     console.log("发送请求到:", OPENAI_PROXY_URL);
     const response = await fetch(OPENAI_PROXY_URL, {
@@ -36,7 +42,16 @@ export const generateChatResponse = async (messages: any): Promise<string> => {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages: messages,
+        messages: [
+          {
+            role: 'system',
+            content: contents,
+          },
+          {
+            role: 'user',
+            content: messages,
+          },
+        ],
         temperature: 0.7,
       })
     });

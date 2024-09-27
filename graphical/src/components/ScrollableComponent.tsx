@@ -1,70 +1,167 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import './ScrollableComponent.css';
 import { useDataStore } from '../store/data-store';
+import { callAIService } from '../api/aiService'
 
-export const ScrollableComponent: React.FC<any> = () => {
-  const [isToggled, setIsToggled] = useState(false);
-  const { imageUrls, description, updateImageUrls, updateDescription } = useDataStore();
-  const handleToggleA = () => {
-    setIsToggled(true);
-  };
+interface ScheduleItem {
+  time: string;
+  activity: string;
+}
+
+interface DaySchedule {
+  day: string;
+  schedule: ScheduleItem[];
+}
+
+// 自定义 debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
-    console.log("111 data", imageUrls);
-  }, [imageUrls]);
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
 
-  const handleToggleB = () => {
-    setIsToggled(false);
-  };
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
 
-  const travelPlan = [
-    "提前规划：无论是短途还是长途旅行，提前规划是关键。确定目的地后，研究当地的天气、交通、住宿、必游景点及特色美食，制定一个大致的行程表。",
-    "预订住宿：根据行程安排，提前预订住宿可以确保有地方住，避免临时找不到住宿的尴尬。同时，提前预订往往能享受更优惠的价格。",
-    "购买旅行保险：购买一份旅行保险，为行程中的意外情况提供保障，比如行李丢失、疾病或取消行程等。",
-    "准备必备物品：根据目的地和季节准备行李，包括合适的衣物、药品（特别是常用药和急救包）、充电器、相机、防晒霜、雨具等。",
-    "了解当地文化与习俗：在出发前，了解目的地的文化习俗、礼仪规范，这有助于您更好地融入当地生活，避免不必要的误会。",
-    "尝试当地美食：旅行不仅是看风景，更是体验不同的生活方式和美食文化。不妨尝试当地的特色菜肴和小吃，让味蕾也来一场旅行。",
-    "保持联系：与家人或朋友保持联系，告知他们您的行程安排和联系方式，确保安全。同时，携带一部手机并保持电量充足，以便在需要时寻求帮助。",
-    "灵活调整行程：虽然提前规划很重要，但也要保持灵活性。遇到天气变化、景点关闭等不可预见的情况时，能够及时调整行程，避免影响整体旅行体验。",
-    "尊重自然与环境：在旅行过程中，注意保护环境，不乱扔垃圾，不破坏自然景观和文化遗产。做一个负责任的旅行者。",
-    "享受当下：最后但同样重要的是，放松心情，享受旅行的过程。无论是独自旅行还是与家人朋友同行，都要珍惜这段时光，留下美好的回忆。"
-  ];
+  return debouncedValue;
+}
+
+export const ScrollableComponent: React.FC<any> = ({ data }) => {
+  const [isToggled, setIsToggled] = useState(false);
+  const [aiResponse, setAiResponse] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { imageUrls, description, updateImageUrls, updateDescription } = useDataStore();
+
+  const debouncedAiResponse = useDebounce(aiResponse, 300); // 300ms 延迟
+
+  const handleToggleA = useCallback(() => setIsToggled(true), []);
+  const handleToggleB = useCallback(() => setIsToggled(false), []);
+
+  const parseSchedule = useCallback((response: string): DaySchedule[] => {
+    try {
+      const parsedSchedule = JSON.parse(response);
+      if (Array.isArray(parsedSchedule) && parsedSchedule.length > 0) {
+        return parsedSchedule;
+      }
+    } catch (error) {
+      // JSON 解析失败，尝试部分解析
+    }
+
+    const dayRegex = /"day":\s*"([^"]+)"/;
+    const scheduleItemRegex = /"time":\s*"([^"]+)",\s*"activity":\s*"([^"]+)"/g;
+    const days = response.split('"day":').slice(1);
+    
+    return days.map(day => {
+      const dayMatch = day.match(dayRegex);
+      const scheduleItems = Array.from(day.matchAll(scheduleItemRegex));
+      
+      return {
+        day: dayMatch ? dayMatch[1] : '未知日期',
+        schedule: scheduleItems.map(item => ({
+          time: item[1],
+          activity: item[2]
+        }))
+      };
+    }).filter(day => day.schedule.length > 0);
+  }, []);
+
+  const schedule = useMemo(() => parseSchedule(debouncedAiResponse), [debouncedAiResponse, parseSchedule]);
+
+  const fetchData = useCallback(async () => {
+    if (!data.centerText) return;
+
+    const contents = `
+      您是专业的智能管家，需要将行程安排成合理的时间表。请严格按照以下JSON格式返回：
+      [
+        {
+          "day": "第1天",
+          "schedule": [
+            {"time": "08:00", "activity": "具体活动"},
+            {"time": "09:30", "activity": "具体活动"},
+            {"time": "12:00", "activity": "具体活动"},
+            {"time": "13:30", "activity": "具体活动"},
+            {"time": "17:00", "activity": "具体活动"},
+            {"time": "18:30", "activity": "具体活动"}
+          ]
+        }
+      ]
+      请根据用户提供的信息，填充具体的活动内容。只返回JSON数据，不要添加任何额外的文字说明。
+    `;
+
+    setIsLoading(true);
+    setAiResponse('');
+
+    try {
+      const aiStream = callAIService(data.centerText, contents, true);
+      let fullResponse = '';
+      for await (const chunk of aiStream) {
+        fullResponse += chunk;
+        setAiResponse(fullResponse);
+      }
+    } catch (error) {
+      console.error('生成 AI 响应时出错:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [data.centerText]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const renderSchedule = useCallback((scheduleData: DaySchedule[]) => (
+    <div className="modern-timeline">
+      {scheduleData.map((day, dayIndex) => (
+        <div key={dayIndex} className="modern-day">
+          <h3 className="modern-day-title">{day.day}</h3>
+          <div className="modern-schedule-list">
+            {day.schedule.map((item, itemIndex) => (
+              <div key={itemIndex} className="modern-schedule-item">
+                <div className="modern-time">{item.time}</div>
+                <div className="modern-activity">{item.activity}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  ), []);
 
   return (
     <div className="scrollable-component">
       <div className="toggle-button-group">
-        <button 
-          onClick={handleToggleA} 
-          className={`toggle-button ${isToggled ? 'active' : ''}`}
-        >
-          显示图文
-        </button>
-        <button 
-          onClick={handleToggleB} 
-          className={`toggle-button ${!isToggled ? 'active' : ''}`}
-        >
-          显示数据
-        </button>
+        <button onClick={handleToggleA} className={`toggle-button ${isToggled ? 'active' : ''}`}>显示图文</button>
+        <button onClick={handleToggleB} className={`toggle-button ${!isToggled ? 'active' : ''}`}>显示数据</button>
       </div>
       <div className="content">
         {isToggled ? (
           <div>
             <h2>去云南的旅游路线</h2>
             <img className="chart-image" src="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fsafe-img.xhscdn.com%2Fbw%2Fc7a6709c-ce99-404c-9866-00c7e3db5523%3FimageView2%2F2%2Fw%2F1080%2Fformat%2Fjpg&refer=http%3A%2F%2Fsafe-img.xhscdn.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1729934074&t=7556ed3ea36603972f1d503527dd7ac9" alt="" />
-              {/* {imageUrls.map((url, index) => (
-                <img className="chart-image" key={index} src={url} alt={`Image ${index + 1}`} />
-              ))} */}
           </div>
         ) : (
-          <div className="timeline-container">
-            {travelPlan.map((step, index) => (
-              <div key={index} className="timeline-item">
-                <div className="timeline-content">
-                  <h3>步骤 {index + 1}</h3>
-                  <p>{step}</p>
+          <div className="modern-schedule-container">
+            <h2 className="modern-title">{data.title}</h2>
+            {isLoading ? (
+              <div className="loading-container">
+                <div className="wave-loader">
+                  <div className="wave-loader__wave"></div>
+                  <div className="wave-loader__wave"></div>
+                  <div className="wave-loader__wave"></div>
+                  <div className="wave-loader__wave"></div>
+                  <div className="wave-loader__wave"></div>
+                  <div className="wave-loader__wave"></div>
                 </div>
               </div>
-            ))}
+            ) : schedule.length > 0 ? (
+              renderSchedule(schedule)
+            ) : (
+              <p>暂无数据</p>
+            )}
           </div>
         )}
       </div>
