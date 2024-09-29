@@ -1,18 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import './ScrollableComponent.css';
-import { useDataStore } from '../store/data-store';
+import { useShapeStore } from '../store/ShapeStore';
 import { callAIService } from '../api/aiService'
-
+import WaveLoader from './WaveLoader';
 interface ScheduleItem {
   time: string;
   activity: string;
 }
-
-interface DaySchedule {
-  day: string;
-  schedule: ScheduleItem[];
-}
-
 // 自定义 debounce hook
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -34,14 +28,14 @@ export const ScrollableComponent: React.FC<any> = ({ data }) => {
   const [isToggled, setIsToggled] = useState(false);
   const [aiResponse, setAiResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { imageUrls, description, updateImageUrls, updateDescription } = useDataStore();
+  const { updateShapeSchedule, getShapeByTitle} = useShapeStore();
 
   const debouncedAiResponse = useDebounce(aiResponse, 300); // 300ms 延迟
 
   const handleToggleA = useCallback(() => setIsToggled(true), []);
   const handleToggleB = useCallback(() => setIsToggled(false), []);
 
-  const parseSchedule = useCallback((response: string): DaySchedule[] => {
+  const parseSchedule = useCallback((response: string): any[] => {
     try {
       const parsedSchedule = JSON.parse(response);
       if (Array.isArray(parsedSchedule) && parsedSchedule.length > 0) {
@@ -73,6 +67,11 @@ export const ScrollableComponent: React.FC<any> = ({ data }) => {
 
   const fetchData = useCallback(async () => {
     if (!data.centerText) return;
+    if (data && data.schedule) {
+      // 如果已经有行程数据，直接使用现有数据
+      setAiResponse(JSON.stringify(data.schedule));
+      return;
+    }
 
     const contents = `
       您是专业的智能管家，需要将行程安排成合理的时间表。请严格按照以下JSON格式返回：
@@ -102,24 +101,27 @@ export const ScrollableComponent: React.FC<any> = ({ data }) => {
         fullResponse += chunk;
         setAiResponse(fullResponse);
       }
+      
+      const parsedSchedule = parseSchedule(fullResponse);
+      updateShapeSchedule(data.id, parsedSchedule);
     } catch (error) {
       console.error('生成 AI 响应时出错:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [data.centerText]);
+  }, [data.centerText, data.title, updateShapeSchedule, getShapeByTitle, parseSchedule]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const renderSchedule = useCallback((scheduleData: DaySchedule[]) => (
+  const renderSchedule = useCallback((scheduleData: any[]) => (
     <div className="modern-timeline">
       {scheduleData.map((day, dayIndex) => (
         <div key={dayIndex} className="modern-day">
           <h3 className="modern-day-title">{day.day}</h3>
           <div className="modern-schedule-list">
-            {day.schedule.map((item, itemIndex) => (
+            {day.schedule.map((item: ScheduleItem, itemIndex: number) => (
               <div key={itemIndex} className="modern-schedule-item">
                 <div className="modern-time">{item.time}</div>
                 <div className="modern-activity">{item.activity}</div>
@@ -146,18 +148,7 @@ export const ScrollableComponent: React.FC<any> = ({ data }) => {
         ) : (
           <div className="modern-schedule-container">
             <h2 className="modern-title">{data.title}</h2>
-            {isLoading ? (
-              <div className="loading-container">
-                <div className="wave-loader">
-                  <div className="wave-loader__wave"></div>
-                  <div className="wave-loader__wave"></div>
-                  <div className="wave-loader__wave"></div>
-                  <div className="wave-loader__wave"></div>
-                  <div className="wave-loader__wave"></div>
-                  <div className="wave-loader__wave"></div>
-                </div>
-              </div>
-            ) : schedule.length > 0 ? (
+            {isLoading ? (<WaveLoader />) : schedule.length > 0 ? (
               renderSchedule(schedule)
             ) : (
               <p>暂无数据</p>

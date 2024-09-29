@@ -153,7 +153,7 @@ const FooterButton = styled.button`
 
 interface ShapeThumbnailProps {
   children: React.ReactNode;
-  values: { text: string; shapeType?: string }[]; // 添加 shapeType
+  values: any;
   onVisibilityChange: (index: number, isVisible: boolean) => void;
 }
 
@@ -172,8 +172,8 @@ const ShapeThumbnail: React.FC<ShapeThumbnailProps> = ({ children, values, onVis
   };
 
   const handleFusionStart = async () => {
-    const visibleItems = values.filter((_, index) => !hiddenItems[index]);
-    const extractedData = visibleItems.map((item) => ({
+    const visibleItems = values.filter((_: any, index: number) => !hiddenItems[index]);
+    const extractedData = visibleItems.map((item: any) => ({
       text: item.text,
       shapeType: item.shapeType
     }));
@@ -205,7 +205,7 @@ const ShapeThumbnail: React.FC<ShapeThumbnailProps> = ({ children, values, onVis
             {!isCollapsed && (
               <ThumbnailInfo>
                 <ThumbnailName $isHidden={hiddenItems[index]}>
-                  {values[index]?.text?.substring(0, 10) + (values[index]?.text?.length > 10 ? '...' : '')}
+                  {values[index]?.title?.substring(0, 10) + (values[index]?.title?.length > 10 ? '...' : '')}
                 </ThumbnailName>
                 <EyeIcon 
                   viewBox="0 0 24 24" 

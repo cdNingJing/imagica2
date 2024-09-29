@@ -1,0 +1,101 @@
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  overflow: hidden;
+  background-color: transparent;
+  bottom: 0;
+  left: 0;
+}
+
+.wave-loader {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: 20%;
+  left: -50%;
+}
+.wave-loader__wave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.3), rgba(142, 68, 173, 0.3), transparent);
+  opacity: 0.8;
+  border-radius: 40%;
+  animation: wave 12s linear infinite;
+}
+
+.wave-loader__wave:nth-child(1) {
+  width: 100%;
+  height: 100%;
+  animation-delay: 0s;
+  opacity: 0.8;
+}
+
+.wave-loader__wave:nth-child(2) {
+  width: 95%;
+  height: 95%;
+  animation-delay: -1.2s;
+  opacity: 0.75;
+}
+
+.wave-loader__wave:nth-child(3) {
+  width: 110%;
+  height: 110%;
+  animation-delay: -2.4s;
+  opacity: 0.7;
+}
+
+.wave-loader__wave:nth-child(4) {
+  width: 85%;
+  height: 85%;
+  animation-delay: -3.6s;
+  opacity: 0.65;
+}
+
+.wave-loader__wave:nth-child(5) {
+  width: 120%;
+  height: 120%;
+  animation-delay: -4.8s;
+  opacity: 0.6;
+}
+
+.wave-loader__wave:nth-child(6) {
+  width: 90%;
+  height: 90%;
+  animation-delay: -6s;
+  opacity: 0.55;
+}
+
+@keyframes wave {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container p {
+  font-size: 18px;
+  color: #333;
+  margin-top: 20px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  position: relative;
+  z-index: 1;
+}
+
+
+.custom-wave-loader .wave-loader {
+  width: 400%;
+  height: 300%;
+  top: 58%;
+  left: -52%;
+}

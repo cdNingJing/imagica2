@@ -1,0 +1,51 @@
+.app {
+  min-height: 100vh;
+}
+
+.header {
+  background-color: #1890ff;
+  padding: 0 20px;
+}
+
+.headerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.mainContainer {
+  display: flex;
+  padding: 20px;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.chatSection,
+.assemblySection {
+  flex: 1;
+  min-width: 0;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  height: calc(100vh - 84px);
+}
+
+@media (max-width: 768px) {
+  .mainContainer {
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .chatSection,
+  .assemblySection {
+    width: 100%;
+    height: calc(50vh - 42px);
+    margin-bottom: 20px;
+  }
+}

@@ -7,13 +7,15 @@ import CanvasBackground from './CanvasBackground';
 import DraggableComponent from './DraggableComponent';
 import TextToShape from './TextToShape';
 import { ScrollableComponent } from './ScrollableComponent';
+import ChatWindow from './ChatWindow';
+import WaveLoader from './WaveLoader';
 
 const Canvas: React.FC = () => {
   const { updateItemPosition } = useCanvas();
   const { shapes, updateShapePosition, updateShapeLayer, updateShapeZIndex } = useShapeStore();
 
   const [draggedItem, setDraggedItem] = useState<{ id: string; startX: number; startY: number } | null>(null);
-  const [visibleShapes, setVisibleShapes] = useState<Set<string>>(new Set(shapes.map(shape => shape.id)));
+  const [visibleShapes, setVisibleShapes] = useState<Set<string>>(new Set(shapes.map(shape => shape.isVisible ? shape.id : '')));
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (draggedItem) {
@@ -55,6 +57,20 @@ const Canvas: React.FC = () => {
     });
   };
 
+  useEffect(() => {
+    setVisibleShapes(prevVisibleShapes => {
+      const newVisibleShapes = new Set(prevVisibleShapes);
+      shapes.forEach(shape => {
+        if (shape.isVisible) {
+          newVisibleShapes.add(shape.id);
+        } else {
+          newVisibleShapes.delete(shape.id);
+        }
+      });
+      return newVisibleShapes;
+    });
+  }, [shapes]);
+
   return (
     <CanvasBackground
       onMouseMove={handleMouseMove}
@@ -65,17 +81,19 @@ const Canvas: React.FC = () => {
         values={shapes}
         onVisibilityChange={handleVisibilityChange}
       >
-        {shapes.map(shape => (
-          <TextToShape
-            key={shape.id}
-            data={{
-              ...shape,
-              text: shape.text.substring(0, 10) + (shape.text.length > 10 ? '...' : ''),
-              width: (shape.width ?? 100) / 10,
-              height: (shape.height ?? 100) / 10
-            }}
-            isThumb={true}
-          />
+        {shapes.map((shape: any) => (
+          shape.isVisible ? (
+            <TextToShape
+              key={shape.id}
+              data={{
+                ...shape,
+                text: shape.text.substring(0, 10) + (shape.text.length > 10 ? '...' : ''),
+                width: (shape.width ?? 100) / 10,
+                height: (shape.height ?? 100) / 10
+              }}
+              isThumb={true}
+            />
+          ) : null
         ))}
       </ShapeThumbnail>
       <ShapeList
@@ -85,6 +103,9 @@ const Canvas: React.FC = () => {
         onDragEnd={handleDragEnd}
         onUpdateZIndex={handleUpdateZIndex}
       />
+
+      <ChatWindow />
+
     </CanvasBackground>
   );
 };

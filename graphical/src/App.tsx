@@ -5,6 +5,8 @@ import Canvas from './components/Canvas';
 import ChatInterface from './components/ChatInterface';
 import FloatingIcon from './components/FloatingIcon';
 import { CanvasProvider } from './store/CanvasStore';
+import ChatWindow from './components/ChatWindow';
+import styles from './App.module.scss'
 
 const AppContainer = styled.div`
   width: 100%;
@@ -194,19 +196,6 @@ const App: React.FC = () => {
         <CanvasContainer>
           <Canvas />
         </CanvasContainer>
-        {isOpen ? (
-          <ChatContainer ref={chatRef} position={position} style={{ left: `${position.x}px`, top: `${position.y}px` }}>
-            <Resizable {...resizableProps} size={size}>
-              <ChatInterface 
-                onClose={toggleChat}
-                onMinimize={handleMinimize}
-                onMaximize={handleMaximize}
-              />
-            </Resizable>
-          </ChatContainer>
-        ) : (
-          <FloatingIcon onClick={toggleChat} />
-        )}
       </AppContainer>
     </CanvasProvider>
   );
