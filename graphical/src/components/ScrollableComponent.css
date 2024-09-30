@@ -408,7 +408,7 @@
 }
 
 .modern-time {
-  flex: 0 0 80px;
+  flex: 0 0 40px;
   font-weight: bold;
   color: #1a1a1a;
 }
@@ -432,6 +432,6 @@
   }
 
   .modern-time {
-    flex: 0 0 60px;
+    flex: 0 0 40px;
   }
 }

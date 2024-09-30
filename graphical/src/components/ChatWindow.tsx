@@ -30,6 +30,7 @@ const ChatWindow: React.FC = () => {
   const abortControllerRef = useRef<AbortController | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
+  const [currentItinerary, setCurrentItinerary] = useState<{ title: string; schedule: any[] } | null>(null);
 
   const scrollToBottom = useCallback(() => {
     if (chatContainerRef.current) {
@@ -46,6 +47,36 @@ const ChatWindow: React.FC = () => {
 
   const { addRandomShape } = useShapeStore();
 
+  const renderSchedule = useCallback((scheduleData: any[]) => (
+    <div className="modern-timeline">
+      {scheduleData.map((day, dayIndex) => (
+        <div key={dayIndex} className="modern-day">
+          <h3 className="modern-day-title">{day.day}</h3>
+          <div className="modern-schedule-list">
+            {day.schedule.map((item: any, itemIndex: number) => (
+              <div key={itemIndex} className="modern-schedule-item">
+                <div className="modern-time">{item.time}</div>
+                <div className="modern-activity">{item.activity}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  ), []);
+
+  function formatItinerary(title: string, schedule: any[]): string {
+    let formattedItinerary = `行程安排：${title}\n\n`;
+    schedule.forEach(day => {
+      formattedItinerary += `${day.day}\n`;
+      day.schedule.forEach((item: any) => {
+        formattedItinerary += `  ${item.time} ${item.activity}\n`;
+      });
+      formattedItinerary += '\n';
+    });
+    return formattedItinerary;
+  }
+
   const handleSubmit = useCallback(async () => {
     if (input.trim() === '') return;
 
@@ -59,9 +90,12 @@ const ChatWindow: React.FC = () => {
 
     setMessages(prevMessages => [...prevMessages, userMessage, aiMessage]);
     setInput('');
+    console.log('生成 AI 开始', true);
     setIsLoading(true);
+    setCurrentItinerary(null);
 
     let aiResponse = '';
+    let extractedItinerary: any = null;
 
     try {
       const aiStream = callChatAIService(
@@ -79,25 +113,33 @@ const ChatWindow: React.FC = () => {
               newMessages[newMessages.length - 1] = { ...aiMessage, content: aiResponse };
               return newMessages;
             });
+
+            // 检查并更新行程
+            if (containsItinerary(aiResponse)) {
+              extractedItinerary = extractItineraryInfo(aiResponse);
+              setCurrentItinerary(extractedItinerary);
+            }
+
             resolve();
           });
         });
       }
 
-      // 在这里添加行程规划识别逻辑
-      if (containsItinerary(aiResponse)) {
-        const { title, schedule } = extractItineraryInfo(aiResponse);
+      // 移到这里，确保在流处理完成后执行
+      if (extractedItinerary) {
         addRandomShape({
-          title,
-          schedule,
-          centerText: aiResponse,
+          title: extractedItinerary.title,
+          schedule: extractedItinerary.schedule,
+          centerText: formatItinerary(extractedItinerary.title, extractedItinerary.schedule),
           isVisible: true,
         });
         message.success('已创建新的行程规划图形');
       }
     } catch (error) {
-      console.error('Error generating AI response:', error);
+      console.error('生成 AI 响应时出错:', error);
+      message.error('生成响应时发生错误，请重试');
     } finally {
+      console.log('生成 AI 结束', false);
       setIsLoading(false);
       abortControllerRef.current = null;
     }
@@ -172,32 +214,55 @@ const ChatWindow: React.FC = () => {
 
   const renderGeneratedComponent = useCallback((content: string) => {
     const parsedContent = parseAIResponse(content);
+    let extraSuggestion = null;
+
     return (
       <div className={styles.generatedContent}>
-        {parsedContent.map((item, index) => (
-          item.type === 'text' ? (
-            <Text key={index}>{item.value}</Text>
-          ) : (
-            <div key={index} className={styles.codeBlock}>
-              <pre>
-                <code className={`language-${item.language || 'javascript'}`}>
-                  {item.value}
-                </code>
-              </pre>
-              <Button 
-                icon={<CopyOutlined />} 
-                onClick={() => handleCopy(item.value)} 
-                className={styles.copyButton}
-                size="small"
-              >
-                复制
-              </Button>
-            </div>
-          )
-        ))}
+        {parsedContent.map((item, index) => {
+          if (item.type === 'text') {
+            if (item.value.startsWith('行程安排：')) {
+              const extraSuggestions = item.value.split('额外建议：');
+              if (extraSuggestions.length > 1) {
+                extraSuggestion = (
+                  <div className={styles.itineraryBlock}>
+                    <Text strong>额外建议：</Text>
+                    <Text>{extraSuggestions[1].trim()}</Text>
+                  </div>
+                );
+              }
+              return null; // 不显示行程安排的主要内容
+            }
+            return null;
+            // return <Text key={index}>{item.value}</Text>;
+          } else {
+            return (
+              <div key={index} className={styles.codeBlock}>
+                <pre>
+                  <code className={`language-${item.language || 'javascript'}`}>
+                    {item.value}
+                  </code>
+                </pre>
+                <Button 
+                  icon={<CopyOutlined />} 
+                  onClick={() => handleCopy(item.value)} 
+                  className={styles.copyButton}
+                  size="small"
+                >
+                  复制
+                </Button>
+              </div>
+            );
+          }
+        })}
+        {currentItinerary && (
+          <div className={styles.itineraryPreview}>
+            {renderSchedule(currentItinerary.schedule)}
+          </div>
+        )}
+        {extraSuggestion} {/* 将额外建议放在最后 */}
       </div>
     );
-  }, []);
+  }, [currentItinerary, renderSchedule, handleCopy]);
 
   const renderMessage = useCallback((msg: Message) => {
     return (
@@ -223,7 +288,7 @@ const ChatWindow: React.FC = () => {
         ))}
         <div ref={messagesEndRef} />
       </div>
-      {!isLoading && <WaveLoader className="custom-wave-loader" />}
+      {isLoading && <WaveLoader className="custom-wave-loader" />}
 
       <div className={styles.inputForm}>
         <TextArea
