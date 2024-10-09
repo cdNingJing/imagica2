@@ -193,6 +193,7 @@ const App: React.FC = () => {
   return (
     <CanvasProvider>
       <AppContainer ref={containerRef}>
+        <ChatWindow />
         <CanvasContainer>
           <Canvas />
         </CanvasContainer>

@@ -1,14 +1,13 @@
 import React, { useCallback, useState, useMemo, useEffect } from 'react';
+import ReactFlow, { Background, Controls, MiniMap } from 'reactflow';
+import 'reactflow/dist/style.css';
+
 import { useCanvas } from '../store/CanvasStore';
 import { useShapeStore } from '../store/ShapeStore';
 import ShapeThumbnail from './ShapeThumbnail';
 import ShapeList from './ShapeList';
-import CanvasBackground from './CanvasBackground';
-import DraggableComponent from './DraggableComponent';
 import TextToShape from './TextToShape';
-import { ScrollableComponent } from './ScrollableComponent';
 import ChatWindow from './ChatWindow';
-import WaveLoader from './WaveLoader';
 
 const Canvas: React.FC = () => {
   const { updateItemPosition } = useCanvas();
@@ -72,41 +71,42 @@ const Canvas: React.FC = () => {
   }, [shapes]);
 
   return (
-    <CanvasBackground
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-    >
-      <ShapeThumbnail
-        values={shapes}
-        onVisibilityChange={handleVisibilityChange}
-      >
-        {shapes.map((shape: any) => (
-          shape.isVisible ? (
-            <TextToShape
-              key={shape.id}
-              data={{
-                ...shape,
-                text: shape.text.substring(0, 10) + (shape.text.length > 10 ? '...' : ''),
-                width: (shape.width ?? 100) / 10,
-                height: (shape.height ?? 100) / 10
-              }}
-              isThumb={true}
-            />
-          ) : null
-        ))}
-      </ShapeThumbnail>
-      <ShapeList
-        shapes={shapes}
-        visibleShapes={visibleShapes}
-        maxZIndex={maxZIndex}
-        onDragEnd={handleDragEnd}
-        onUpdateZIndex={handleUpdateZIndex}
-      />
+    <div style={{ width: '100%', height: '100vh' }}>
+      <ReactFlow>
+        <Background />
+        <Controls />
+        <MiniMap />
+        
+        <ShapeThumbnail
+          values={shapes}
+          onVisibilityChange={handleVisibilityChange}
+        >
+          {shapes.map((shape: any) => (
+            shape.isVisible ? (
+              <TextToShape
+                key={shape.id}
+                data={{
+                  ...shape,
+                  text: shape.text.substring(0, 10) + (shape.text.length > 10 ? '...' : ''),
+                  width: (shape.width ?? 100) / 10,
+                  height: (shape.height ?? 100) / 10
+                }}
+                isThumb={true}
+              />
+            ) : null
+          ))}
+        </ShapeThumbnail>
+        <ShapeList
+          shapes={shapes}
+          visibleShapes={visibleShapes}
+          maxZIndex={maxZIndex}
+          onDragEnd={handleDragEnd}
+          onUpdateZIndex={handleUpdateZIndex}
+        />
 
-      <ChatWindow />
-
-    </CanvasBackground>
+        {/* <ChatWindow /> */}
+      </ReactFlow>
+    </div>
   );
 };
 
