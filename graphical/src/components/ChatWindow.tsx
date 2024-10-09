@@ -105,6 +105,9 @@ const ChatWindow: React.FC = () => {
       );
 
       for await (const chunk of aiStream) {
+        if (chunk === 'data: [DONE]') {
+          break;
+        }
         aiResponse += chunk;
         await new Promise<void>(resolve => {
           requestAnimationFrame(() => {
@@ -135,7 +138,7 @@ const ChatWindow: React.FC = () => {
         });
         message.success('已创建新的行程规划图形');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('生成 AI 响应时出错:', error);
       message.error('生成响应时发生错误，请重试');
     } finally {
