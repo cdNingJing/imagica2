@@ -1,20 +1,56 @@
 import React, { useCallback, useState, useMemo, useEffect } from 'react';
-import ReactFlow, { Background, Controls, MiniMap } from 'reactflow';
+import ReactFlow, { 
+  Background, 
+  Controls, 
+  MiniMap, 
+  Node, 
+  NodeTypes,
+  OnNodesChange,
+  applyNodeChanges
+} from 'reactflow';
 import 'reactflow/dist/style.css';
-
+import TextToShape from './TextToShape';
 import { useCanvas } from '../store/CanvasStore';
 import { useShapeStore } from '../store/ShapeStore';
 import ShapeThumbnail from './ShapeThumbnail';
 import ShapeList from './ShapeList';
-import TextToShape from './TextToShape';
+import CustomShapeNode from './CustomShapeNode';
 import ChatWindow from './ChatWindow';
+
+const customNodeTypes: NodeTypes = {
+  customShape: CustomShapeNode,
+};
 
 const Canvas: React.FC = () => {
   const { updateItemPosition } = useCanvas();
+  const [draggedItem, setDraggedItem] = useState<any | null>(null);
   const { shapes, updateShapePosition, updateShapeLayer, updateShapeZIndex } = useShapeStore();
 
-  const [draggedItem, setDraggedItem] = useState<{ id: string; startX: number; startY: number } | null>(null);
+  const nodes: any[] = useMemo(() => shapes.map((shape: any) => ({
+    id: shape.id,
+    type: 'customShape',
+    position: { x: shape.x, y: shape.y },
+    width: 100,
+    height: 100,
+    draggable: true,
+    data: { 
+      shape: shape,
+      text: shape.text,
+      backgroundColor: shape.backgroundColor || '#4a4a4a'
+    },
+  })), [shapes]);
+
   const [visibleShapes, setVisibleShapes] = useState<Set<string>>(new Set(shapes.map(shape => shape.isVisible ? shape.id : '')));
+
+  const onNodesChange: OnNodesChange = useCallback(
+    (changes) => {
+      const updatedNodes = applyNodeChanges(changes, nodes);
+      updatedNodes.forEach(node => {
+        updateShapePosition(node.id, node.position.x, node.position.y);
+      });
+    },
+    [nodes, updateShapePosition]
+  );
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (draggedItem) {
@@ -72,7 +108,11 @@ const Canvas: React.FC = () => {
 
   return (
     <div style={{ width: '100%', height: '100vh' }}>
-      <ReactFlow>
+      <ReactFlow
+        nodes={nodes}
+        edges={[]}
+        nodeTypes={customNodeTypes}
+      >
         <Background />
         <Controls />
         <MiniMap />
@@ -96,15 +136,6 @@ const Canvas: React.FC = () => {
             ) : null
           ))}
         </ShapeThumbnail>
-        <ShapeList
-          shapes={shapes}
-          visibleShapes={visibleShapes}
-          maxZIndex={maxZIndex}
-          onDragEnd={handleDragEnd}
-          onUpdateZIndex={handleUpdateZIndex}
-        />
-
-        {/* <ChatWindow /> */}
       </ReactFlow>
     </div>
   );
