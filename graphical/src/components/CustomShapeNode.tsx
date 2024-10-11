@@ -5,7 +5,7 @@ import { useShapeStore } from '../store/ShapeStore';
 import DraggableComponent from './DraggableComponent';
 import TextToShape from './TextToShape';
 
-const CustomShapeNode: React.FC<NodeProps<any>> = ({ data }) => {
+const CustomShapeNode: React.FC<any> = ({ data }) => {
   const { shapes, updateShapePosition, updateShapeLayer, updateShapeZIndex } = useShapeStore();
   
   const [visibleShapes, setVisibleShapes] = useState<Set<string>>(new Set(shapes.map(shape => shape.isVisible ? shape.id : '')));
@@ -36,7 +36,7 @@ const CustomShapeNode: React.FC<NodeProps<any>> = ({ data }) => {
 
   return (
     <div>
-      <DraggableComponent
+      {/* <DraggableComponent
         key={data.shape.id}
         initialX={data.shape.x}
         initialY={data.shape.y}
@@ -46,7 +46,18 @@ const CustomShapeNode: React.FC<NodeProps<any>> = ({ data }) => {
         onUpdateZIndex={(newZIndex) => handleUpdateZIndex(data.shape.id, newZIndex)}
       >
         <TextToShape data={data.shape} />
-      </DraggableComponent>
+      </DraggableComponent> */}
+
+      <Handle type="target" position={Position.Top} />
+        <div>
+          <label htmlFor="text">Text:</label>
+        </div>
+        <Handle type="source" position={Position.Bottom} id="a" />
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          id="b"
+        />
     </div>
   );
 };

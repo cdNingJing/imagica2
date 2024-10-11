@@ -16,10 +16,12 @@ import ShapeThumbnail from './ShapeThumbnail';
 import ShapeList from './ShapeList';
 import CustomShapeNode from './CustomShapeNode';
 import ChatWindow from './ChatWindow';
-
+import TextUpdaterNode from './TextUpdaterNode'
 const customNodeTypes: NodeTypes = {
   customShape: CustomShapeNode,
 };
+
+const nodeTypes = { textUpdater: TextUpdaterNode };
 
 const Canvas: React.FC = () => {
   const { updateItemPosition } = useCanvas();
@@ -106,14 +108,39 @@ const Canvas: React.FC = () => {
     });
   }, [shapes]);
 
+  const initialNodes = [
+    {
+      id: 'node-1',
+      type: 'textUpdater',
+      position: { x: 0, y: 0 },
+      data: { value: 123 },
+    },
+    {
+      id: 'node-2',
+      type: 'textUpdater',
+      position: { x: 100, y: 100 },
+      data: { value: 123 },
+    },
+  ];
+
+  const rfStyle = useMemo(() => ({
+    backgroundImage: `
+      linear-gradient(to right, #B8CEFF 1px, transparent 1px),
+      linear-gradient(to bottom, #B8CEFF 1px, transparent 1px)
+    `,
+    backgroundSize: '20px 20px',
+    backgroundColor: '#ffffff',
+  }), []);
+
   return (
-    <div style={{ width: '100%', height: '100vh' }}>
+    <div style={{ width: '100vw', height: '100vh' }}>
       <ReactFlow
-        nodes={nodes}
+        nodes={initialNodes}
         edges={[]}
-        nodeTypes={customNodeTypes}
+        nodeTypes={nodeTypes}
+        style={rfStyle}
       >
-        <Background />
+        {/* <Background />
         <Controls />
         <MiniMap />
         
@@ -135,7 +162,7 @@ const Canvas: React.FC = () => {
               />
             ) : null
           ))}
-        </ShapeThumbnail>
+        </ShapeThumbnail> */}
       </ReactFlow>
     </div>
   );
