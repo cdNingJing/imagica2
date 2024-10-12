@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { Input, Button, List, Typography, Space, message } from 'antd'
-import { SendOutlined, LoadingOutlined, CopyOutlined } from '@ant-design/icons'
+import { SendOutlined, LoadingOutlined, CopyOutlined, ExpandOutlined, ShrinkOutlined } from '@ant-design/icons'
 import { callChatAIService } from './../api/aiService'
 import { useShapeStore } from '../store/ShapeStore'
 import styles from './ChatWindow.module.scss'
@@ -26,6 +26,10 @@ interface Message {
 const ChatWindow: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
+  const [isMinimized, setIsMinimized] = useState(() => {
+    const saved = localStorage.getItem('chatWindowMinimized');
+    return saved ? JSON.parse(saved) : false;
+  });
   const [isLoading, setIsLoading] = useState(false)
   const abortControllerRef = useRef<AbortController | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -45,8 +49,15 @@ const ChatWindow: React.FC = () => {
     }
   }, [messages, scrollToBottom])
 
-  const { addRandomShape } = useShapeStore();
+  useEffect(() => {
+    localStorage.setItem('chatWindowMinimized', JSON.stringify(isMinimized));
+  }, [isMinimized]);
 
+  const { addRandomShape } = useShapeStore();
+  const toggleMinimize = () => {
+    setIsMinimized(!isMinimized);
+  };
+  
   const renderSchedule = useCallback((scheduleData: any[]) => (
     <div className="modern-timeline">
       {scheduleData.map((day, dayIndex) => (
@@ -282,42 +293,57 @@ const ChatWindow: React.FC = () => {
   }, [renderGeneratedComponent]);
 
   return (
-    <div className={styles.chatWindow}>
-      <div className={styles.chatMessages} ref={chatContainerRef}>
-        {messages.map((msg, index) => (
-          <React.Fragment key={index}>
-            {renderMessage(msg)}
-          </React.Fragment>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
-      {isLoading && <WaveLoader className="custom-wave-loader" />}
-
-      <div className={styles.inputForm}>
-        <TextArea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="输入您的需求..."
-          disabled={isLoading}
-          autoSize={{ minRows: 2, maxRows: 6 }}
-        />
-        <Space>
-          <Button 
-            type="primary" 
-            onClick={handleSubmit} 
-            disabled={isLoading} 
-            icon={isLoading ? <LoadingOutlined /> : <SendOutlined />}
-          >
-            发送
-          </Button>
-          {isLoading && (
-            <Button onClick={handleCancel}>
-              取消
-            </Button>
-          )}
-        </Space>
-      </div>
+    <div className={`${styles.chatWindow} ${isMinimized ? styles.minimized : ''}`}>
+      {isMinimized ? (
+        <div className={styles.minimizedChat} onClick={toggleMinimize}>
+          <span>Chat</span>
+        </div>
+      ) : (
+        <>
+          <div className={styles.chatHeader}>
+            <h3>聊天窗口</h3>
+            <Button
+              icon={<ShrinkOutlined />}
+              onClick={toggleMinimize}
+              type="text"
+            />
+          </div>
+          <div className={styles.chatMessages} ref={chatContainerRef}>
+            {messages.map((msg, index) => (
+              <React.Fragment key={index}>
+                {renderMessage(msg)}
+              </React.Fragment>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+          {isLoading && <WaveLoader className="custom-wave-loader" />}
+          <div className={styles.inputForm}>
+            <TextArea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="输入您的需求..."
+              disabled={isLoading}
+              autoSize={{ minRows: 2, maxRows: 6 }}
+            />
+            <Space>
+              <Button 
+                type="primary" 
+                onClick={handleSubmit} 
+                disabled={isLoading} 
+                icon={isLoading ? <LoadingOutlined /> : <SendOutlined />}
+              >
+                发送
+              </Button>
+              {isLoading && (
+                <Button onClick={handleCancel}>
+                  取消
+                </Button>
+              )}
+            </Space>
+          </div>
+        </>
+      )}
     </div>
   )
 }

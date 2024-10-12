@@ -6,17 +6,62 @@
   right: 20px;
   top: 20px;
   bottom: 20px;
-  height: auto;
+  height: calc(100% - 40px);
   max-width: 100%;
-  background-color: #fff;
-  border-radius: 12px;
-  // box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  overflow: hidden;
   background-color: #f1f1f1;
+  border-radius: 12px;
   z-index: 10;
+  overflow: hidden;
+  transition: width 0.3s ease, height 0.3s ease 0.1s, border-radius 0.3s ease;
+
+  &.minimized {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    transition: width 0.3s ease 0.1s, height 0.3s ease, border-radius 0.3s ease 0.1s;
+    animation: colorTransition 1s ease-in-out forwards;
+    animation-delay: 0.4s; // 等待缩小动画完成后开始颜色变化
+  }
 }
 
+.chatContent {
+  opacity: 1;
+  transition: opacity 0.2s ease 0.2s;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .minimized & {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+}
+
+@keyframes colorTransition {
+  100% { background-color: #1890ff; }
+}
+
+.minimizedChat {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+
+  .minimized & {
+    opacity: 1;
+    transition: opacity 0.2s ease 0.3s;
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.2); // 半透明白色悬停效果
+  }
+}
 .chatMessages {
   flex-grow: 1;
   overflow-y: auto;
@@ -332,4 +377,23 @@
   padding: 10px 15px;
   margin-top: 20px;
   border-radius: 0 4px 4px 0;
+}
+
+.minimizedChat {
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.chatHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #d9d9d9;
 }
