@@ -17,11 +17,28 @@ import ShapeList from './ShapeList';
 import CustomShapeNode from './CustomShapeNode';
 import ChatWindow from './ChatWindow';
 import TextUpdaterNode from './TextUpdaterNode'
-const customNodeTypes: NodeTypes = {
+const customNodeTypes: any = {
   customShape: CustomShapeNode,
 };
 
 const nodeTypes = { textUpdater: TextUpdaterNode };
+
+const initialNodes = [
+  {
+    id: 'node-1',
+    type: 'customShape',
+    position: { x: 0, y: 0 },
+    data: { value: 123 },
+    draggable: true,
+  },
+  {
+    id: 'node-2',
+    type: 'customShape',
+    position: { x: 100, y: 100 },
+    data: { value: 123 },
+    draggable: true,
+  },
+];
 
 const Canvas: React.FC = () => {
   const { updateItemPosition } = useCanvas();
@@ -41,6 +58,9 @@ const Canvas: React.FC = () => {
       backgroundColor: shape.backgroundColor || '#4a4a4a'
     },
   })), [shapes]);
+
+  const [nodesData, setNodesData] = useState<Node[]>(nodes);
+  console.log("111 nodesData", nodesData)
 
   const [visibleShapes, setVisibleShapes] = useState<Set<string>>(new Set(shapes.map(shape => shape.isVisible ? shape.id : '')));
 
@@ -108,21 +128,6 @@ const Canvas: React.FC = () => {
     });
   }, [shapes]);
 
-  const initialNodes = [
-    {
-      id: 'node-1',
-      type: 'textUpdater',
-      position: { x: 0, y: 0 },
-      data: { value: 123 },
-    },
-    {
-      id: 'node-2',
-      type: 'textUpdater',
-      position: { x: 100, y: 100 },
-      data: { value: 123 },
-    },
-  ];
-
   const rfStyle = useMemo(() => ({
     backgroundImage: `
       linear-gradient(to right, #B8CEFF 1px, transparent 1px),
@@ -132,15 +137,21 @@ const Canvas: React.FC = () => {
     backgroundColor: '#ffffff',
   }), []);
 
+  const onNodesChangeData: any = useCallback(
+    (changes: any) => setNodesData((nds: any) => applyNodeChanges(changes, nds)),
+    []
+  );
+
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
       <ReactFlow
-        nodes={initialNodes}
+        nodes={nodesData}
         edges={[]}
-        nodeTypes={nodeTypes}
-        style={rfStyle}
+        onNodesChange={onNodesChangeData}
+        nodeTypes={customNodeTypes}
+        fitView
       >
-        {/* <Background />
+        <Background />
         <Controls />
         <MiniMap />
         
@@ -162,7 +173,7 @@ const Canvas: React.FC = () => {
               />
             ) : null
           ))}
-        </ShapeThumbnail> */}
+        </ShapeThumbnail>
       </ReactFlow>
     </div>
   );

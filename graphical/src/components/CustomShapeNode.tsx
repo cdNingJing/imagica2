@@ -36,7 +36,7 @@ const CustomShapeNode: React.FC<any> = ({ data }) => {
 
   return (
     <div>
-      {/* <DraggableComponent
+      <DraggableComponent
         key={data.shape.id}
         initialX={data.shape.x}
         initialY={data.shape.y}
@@ -46,18 +46,7 @@ const CustomShapeNode: React.FC<any> = ({ data }) => {
         onUpdateZIndex={(newZIndex) => handleUpdateZIndex(data.shape.id, newZIndex)}
       >
         <TextToShape data={data.shape} />
-      </DraggableComponent> */}
-
-      <Handle type="target" position={Position.Top} />
-        <div>
-          <label htmlFor="text">Text:</label>
-        </div>
-        <Handle type="source" position={Position.Bottom} id="a" />
-        <Handle
-          type="source"
-          position={Position.Bottom}
-          id="b"
-        />
+      </DraggableComponent>
     </div>
   );
 };
