@@ -70,22 +70,8 @@ export const useShapeStore = create<ShapeStore>((set) => ({
     fontSize: 16,
     fontFamily: 'Arial',
     title: "云南七日游",
-    centerText: "云南6日游行程图：从昆明出发，乘飞机2小时7分钟到达大理。然后游览洱海古城（2小时13分钟车程），前往东河古镇（20分钟车程）。之后前往香格里拉（4小时7分钟车程），最后到达泸沽湖（4小时车程）。图中用卡通风格的地图标记、汽车、火车和飞机图标展示了旅程路线，并标注了各目的地之间的大致行驶时间。整体背景为浅蓝色，顶部有一个'GO!'的指示牌，突出了旅行的主题。"
-  },{ 
-    id: '2', 
-    text: '圆形', 
-    shapeType: 'circle', 
-    isVisible: true,
-    layer: 0, 
-    x: 20, 
-    y: 20, 
-    zIndex: 0,
-    color: '#FF5733',
-    fontSize: 16,
-    fontFamily: 'Arial',
-    title: "云南七日游",
-    centerText: "云南6日游行程图：从昆明出发，乘飞机2小时7分钟到达大理。然后游览洱海古城（2小时13分钟车程），前往东河古镇（20分钟车程）。之后前往香格里拉（4小时7分钟车程），最后到达泸沽湖（4小时车程）。图中用卡通风格的地图标记、汽车、火车和飞机图标展示了旅程路线，并标注了各目的地之间的大致行驶时间。整体背景为浅蓝色，顶部有一个'GO!'的指示牌，突出了旅行的主题。"
-  },
+    centerText: ""
+  }
 ],
   generateRandomColor: () => {
     return `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;

@@ -27,7 +27,7 @@ interface TextToShapeProps {
   isThumb?: boolean;
 }
 
-const TextToShape: React.FC<TextToShapeProps> = ({ data, isThumb = false }) => {
+const TextToShape: React.FC<any> = ({ data, isThumb = false }) => {
   const { text, shapeType, color, colors, fontSize, fontFamily, fontColor, size } = data;
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });

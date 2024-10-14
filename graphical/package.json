@@ -16,6 +16,7 @@
     "antd": "^5.21.1",
     "axios": "^1.7.7",
     "d3": "^7.9.0",
+    "dagre": "^0.8.5",
     "dotenv": "^16.4.5",
     "groq-sdk": "^0.7.0",
     "re-resizable": "^6.9.18",
@@ -58,6 +59,7 @@
   "devDependencies": {
     "@types/createjs": "^0.0.32",
     "@types/d3": "^7.4.3",
+    "@types/dagre": "^0.7.52",
     "@types/lodash": "^4.17.9",
     "@types/prismjs": "^1.26.4",
     "sass": "^1.79.4"

@@ -24,11 +24,44 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
+// 在文件顶部添加这个新的转换函数
+const convertItineraryToSchedule = (itinerary: any): any[] => {
+  return itinerary.cities.map((city: any, index: number) => {
+    const dayNumber = index + 1;
+    const schedule = [
+      { time: "08:00", activity: `在${city.name}开始新的一天` },
+      ...city.attractions.map((attraction: any) => ({
+        time: "10:00", // 这里可以根据实际情况设置更精确的时间
+        activity: `参观${attraction.name} (${attraction.duration})`
+      })),
+      ...(city.accommodation ? [{ 
+        time: "20:00", 
+        activity: `入住${city.accommodation.name}` 
+      }] : [])
+    ];
+
+    // 添加当天的活动（如果有）
+    const dayActivities = itinerary.activities.filter((activity: any) => 
+      activity.location === city.name
+    );
+    schedule.push(...dayActivities.map((activity: any) => ({
+      time: "14:00", // 这里可以根据实际情况设置更精确的时间
+      activity: `${activity.name} (${activity.duration})`
+    })));
+
+    return {
+      day: `第${dayNumber}天`,
+      schedule: schedule
+    };
+  });
+};
+
 export const ScrollableComponent: React.FC<any> = ({ data }) => {
   const [isToggled, setIsToggled] = useState(false);
   const [aiResponse, setAiResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { updateShapeSchedule, getShapeByTitle} = useShapeStore();
+  const [schedule, setSchedule] = useState<any[]>([]);
 
   const debouncedAiResponse = useDebounce(aiResponse, 300); // 300ms 延迟
 
@@ -63,7 +96,12 @@ export const ScrollableComponent: React.FC<any> = ({ data }) => {
     }).filter(day => day.schedule.length > 0);
   }, []);
 
-  const schedule = useMemo(() => parseSchedule(debouncedAiResponse), [debouncedAiResponse, parseSchedule]);
+  useEffect(() => {
+    if (data.itinerary) {
+      const convertedSchedule = convertItineraryToSchedule(data.itinerary);
+      setSchedule(convertedSchedule);
+    }
+  }, [data.itinerary]);
 
   const fetchData = useCallback(async () => {
     if (!data.centerText) return;
@@ -112,7 +150,8 @@ export const ScrollableComponent: React.FC<any> = ({ data }) => {
   }, [data.centerText, data.title, updateShapeSchedule, getShapeByTitle, parseSchedule]);
 
   useEffect(() => {
-    fetchData();
+    console.log("111 itinerary", data)
+    // fetchData();
   }, [fetchData]);
 
   const renderSchedule = useCallback((scheduleData: any[]) => (
