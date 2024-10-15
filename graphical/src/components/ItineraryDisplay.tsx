@@ -1,5 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
+import './ItineraryDisplay.css';
 
 interface Attraction {
   name: string;
@@ -75,21 +76,24 @@ const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({ itinerary }) => {
 
   return (
     <div className="itinerary-display">
-      <h1>{itinerary.tripName}</h1>
-      <p>行程：{itinerary.duration} ({formatDate(itinerary.startDate)} - {formatDate(itinerary.endDate)})</p>
-      <p>预算：{itinerary.budget} 元 | 旅行人数：{itinerary.travelers} 人</p>
+      <div className="trip-info">
+        <p>行程：{itinerary.duration}</p>
+        <p>日期：{formatDate(itinerary.startDate)} - {formatDate(itinerary.endDate)}</p>
+        <p>预算：{itinerary.budget} 元 | 旅行人数：{itinerary.travelers} 人</p>
+      </div>
 
       <div className="timeline">
         {itinerary.cities.map((city, cityIndex) => (
           <div key={cityIndex} className="city-section">
             <h2>{city.name} ({city.duration})</h2>
-            {city.accommodation ? (
-              <>
-                <p>住宿：{city.accommodation.name} ({formatDate(city.accommodation.checkIn)} - {formatDate(city.accommodation.checkOut)})</p>
-                <p>地址：{city.accommodation.address} | 价格：{city.accommodation.price} 元/晚</p>
-              </>
-            ) : (
-              <p>此城市无住宿安排</p>
+            {city.accommodation && (
+              <div className="accommodation">
+                <h3>住宿：{city.accommodation.name}</h3>
+                <p>入住：{formatDate(city.accommodation.checkIn)}</p>
+                <p>退房：{formatDate(city.accommodation.checkOut)}</p>
+                <p>地址：{city.accommodation.address}</p>
+                <p>价格：{city.accommodation.price} 元/晚</p>
+              </div>
             )}
 
             {city.attractions.map((attraction, attrIndex) => (
@@ -98,7 +102,8 @@ const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({ itinerary }) => {
                 <div className="event-content">
                   <h3>{attraction.name}</h3>
                   <p>时间：{formatDate(attraction.visitDate)} | 持续：{attraction.duration}</p>
-                  <p>门票：{attraction.ticketPrice} 元 | {attraction.description}</p>
+                  <p>门票：{attraction.ticketPrice} 元</p>
+                  <p>{attraction.description}</p>
                 </div>
               </div>
             ))}
@@ -114,8 +119,10 @@ const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({ itinerary }) => {
             <div className="event-date">第 {getDayNumber(activity.date)} 天</div>
             <div className="event-content">
               <h3>{activity.name}</h3>
-              <p>地点：{activity.location} | 时间：{formatDate(activity.date)} | 持续：{activity.duration}</p>
-              <p>费用：{activity.cost} 元 | {activity.description}</p>
+              <p>地点：{activity.location}</p>
+              <p>时间：{formatDate(activity.date)} | 持续：{activity.duration}</p>
+              <p>费用：{activity.cost} 元</p>
+              <p>{activity.description}</p>
             </div>
           </div>
         ))}
@@ -125,7 +132,8 @@ const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({ itinerary }) => {
             <div className="event-date">第 {getDayNumber(transport.date)} 天</div>
             <div className="event-content">
               <h3>{transport.type}</h3>
-              <p>从 {transport.from} 到 {transport.to} | 时间：{formatDate(transport.date)}</p>
+              <p>从 {transport.from} 到 {transport.to}</p>
+              <p>时间：{formatDate(transport.date)}</p>
               <p>费用：{transport.cost} 元</p>
             </div>
           </div>

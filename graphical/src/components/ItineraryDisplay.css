@@ -1,68 +1,120 @@
 .itinerary-display {
-  font-family: Arial, sans-serif;
   max-width: 100%;
-  padding: 10px;
-  box-sizing: border-box;
+  padding: 16px 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.itinerary-display h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: #1a202c;
+  text-align: center;
+}
+
+.itinerary-display h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #2d3748;
+}
+
+.itinerary-display h3 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #4a5568;
+}
+
+.trip-info {
+  background-color: #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 20px;
+  font-size: 13px;
 }
 
 .timeline {
-  position: relative;
-  padding-left: 20px;
-  border-left: 2px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.city-section {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.accommodation {
+  background-color: #ebf4ff;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
 }
 
 .event {
-  position: relative;
   margin-bottom: 20px;
-}
-
-.event::before {
-  content: '';
-  position: absolute;
-  left: -26px;
-  top: 0;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #007bff;
+  border-left: 2px solid #4299e1;
+  padding-left: 12px;
 }
 
 .event-date {
-  font-weight: bold;
-  margin-bottom: 5px;
-  font-size: 0.9em;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #4299e1;
 }
 
 .event-content {
-  background-color: #f8f9fa;
-  padding: 10px;
-  border-radius: 5px;
-  font-size: 0.9em;
+  background-color: #f7fafc;
+  border-radius: 8px;
+  padding: 12px;
 }
 
 .notes {
-  margin-top: 30px;
-  background-color: #f8f9fa;
-  padding: 15px;
-  border-radius: 5px;
-  font-size: 0.9em;
+  margin-top: 24px;
+  background-color: #fffaf0;
+  border-radius: 8px;
+  padding: 16px;
 }
 
-h1 {
-  font-size: 1.5em;
-  color: #007bff;
+.notes h3 {
+  color: #d69e2e;
 }
 
-h2 {
-  font-size: 1.3em;
-  color: #007bff;
+.notes ul {
+  list-style-type: disc;
+  padding-left: 20px;
 }
 
-h3 {
-  font-size: 1.1em;
-  color: #007bff;
+.notes li {
+  margin-bottom: 8px;
 }
 
-p {
-  margin: 5px 0;
+@media (max-width: 768px) {
+  .itinerary-display {
+    font-size: 13px;
+    padding: 12px;
+  }
+
+  .itinerary-display h1 {
+    font-size: 22px;
+  }
+
+  .itinerary-display h2 {
+    font-size: 18px;
+  }
+
+  .itinerary-display h3 {
+    font-size: 16px;
+  }
+
+  .trip-info, .accommodation {
+    font-size: 12px;
+  }
 }
