@@ -3,6 +3,8 @@ import './ScrollableComponent.css';
 import { useShapeStore } from '../store/ShapeStore';
 import { callAIService } from '../api/aiService'
 import WaveLoader from './WaveLoader';
+import TripMap from './TripMap';
+import ItineraryDisplay from './ItineraryDisplay';
 interface ScheduleItem {
   time: string;
   activity: string;
@@ -24,33 +26,79 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-// 在文件顶部添加这个新的转换函数
 const convertItineraryToSchedule = (itinerary: any): any[] => {
-  return itinerary.cities.map((city: any, index: number) => {
-    const dayNumber = index + 1;
-    const schedule = [
-      { time: "08:00", activity: `在${city.name}开始新的一天` },
-      ...city.attractions.map((attraction: any) => ({
-        time: "10:00", // 这里可以根据实际情况设置更精确的时间
-        activity: `参观${attraction.name} (${attraction.duration})`
-      })),
-      ...(city.accommodation ? [{ 
+  const startDate = new Date(itinerary.startDate);
+  const endDate = new Date(itinerary.endDate);
+  const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)) + 1;
+
+  return Array.from({ length: totalDays }, (_, index) => {
+    const currentDate = new Date(startDate);
+    currentDate.setDate(startDate.getDate() + index);
+    const formattedDate = currentDate.toISOString().split('T')[0];
+
+    const city = itinerary.cities.find((city: any) => {
+      const checkIn = new Date(city.accommodation?.checkIn);
+      const checkOut = new Date(city.accommodation?.checkOut);
+      return currentDate >= checkIn && currentDate < checkOut;
+    });
+
+    const schedule = [];
+
+    // 添加早晨开始的活动
+    schedule.push({ time: "08:00", activity: `在${city?.name || '当前城市'}开始新的一天` });
+
+    // 添加景点参观
+    if (city) {
+      const attractions = city.attractions.filter((attraction: any) => 
+        attraction.visitDate === formattedDate
+      );
+      attractions.forEach((attraction: any, i: number) => {
+        const time = new Date(currentDate);
+        time.setHours(9 + i * 2, 0, 0); // 假设每个景点间隔2小时
+        schedule.push({
+          time: time.toTimeString().slice(0, 5),
+          activity: `参观${attraction.name} (${attraction.duration})`
+        });
+      });
+    }
+
+    // 添加当天的活动
+    const dayActivities = itinerary.activities.filter((activity: any) => 
+      activity.date === formattedDate
+    );
+    dayActivities.forEach((activity: any, i: number) => {
+      const time = new Date(currentDate);
+      time.setHours(14 + i, 30, 0); // 假设下午2:30开始，每个活动间隔1小时
+      schedule.push({
+        time: time.toTimeString().slice(0, 5),
+        activity: `${activity.name} (${activity.duration})`
+      });
+    });
+
+    // 添加交通安排
+    const transportations = itinerary.transportation.filter((transport: any) => 
+      transport.date === formattedDate
+    );
+    transportations.forEach((transport: any) => {
+      schedule.push({
+        time: "12:00", // 假设所有交通安排在中午12点
+        activity: `从${transport.from}到${transport.to}的${transport.type}`
+      });
+    });
+
+    // 添加入住信息
+    if (city && city.accommodation && city.accommodation.checkIn === formattedDate) {
+      schedule.push({ 
         time: "20:00", 
         activity: `入住${city.accommodation.name}` 
-      }] : [])
-    ];
+      });
+    }
 
-    // 添加当天的活动（如果有）
-    const dayActivities = itinerary.activities.filter((activity: any) => 
-      activity.location === city.name
-    );
-    schedule.push(...dayActivities.map((activity: any) => ({
-      time: "14:00", // 这里可以根据实际情况设置更精确的时间
-      activity: `${activity.name} (${activity.duration})`
-    })));
+    // 按时间排序
+    schedule.sort((a, b) => a.time.localeCompare(b.time));
 
     return {
-      day: `第${dayNumber}天`,
+      day: `第${index + 1}天 (${formattedDate})`,
       schedule: schedule
     };
   });
@@ -58,6 +106,7 @@ const convertItineraryToSchedule = (itinerary: any): any[] => {
 
 export const ScrollableComponent: React.FC<any> = ({ data }) => {
   const [isToggled, setIsToggled] = useState(false);
+  const [locations, setLocations] = useState<any[]>([]);
   const [aiResponse, setAiResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { updateShapeSchedule, getShapeByTitle} = useShapeStore();
@@ -172,8 +221,30 @@ export const ScrollableComponent: React.FC<any> = ({ data }) => {
     </div>
   ), []);
 
+  useEffect(() => {
+    if (data.itinerary) {
+      const convertedSchedule = convertItineraryToSchedule(data.itinerary);
+      setSchedule(convertedSchedule);
+      
+      // 从���程中提取位置信息
+      const extractedLocations = data.itinerary.cities.map((city: any) => ({
+        name: city?.name || '成都',
+        lat: city?.latitude || 30.572816,
+        lng: city?.longitude || 104.066801
+      }));
+      setLocations(extractedLocations);
+    }
+  }, [data.itinerary]);
+
+  const defaultLocations: any[] = [
+    { name: "大阪", lat: 34.6937, lng: 135.5023 },
+    { name: "京都", lat: 35.0116, lng: 135.7681 },
+    { name: "奈良", lat: 34.6851, lng: 135.8048 },
+    { name: "大阪", lat: 34.6937, lng: 135.5023 },
+  ];
+
   return (
-    <div className="scrollable-component">
+    <div className="scrollable-component" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
       <div className="toggle-button-group">
         <button onClick={handleToggleA} className={`toggle-button ${isToggled ? 'active' : ''}`}>显示图文</button>
         <button onClick={handleToggleB} className={`toggle-button ${!isToggled ? 'active' : ''}`}>显示数据</button>
@@ -181,14 +252,14 @@ export const ScrollableComponent: React.FC<any> = ({ data }) => {
       <div className="content">
         {isToggled ? (
           <div>
-            <h2>去云南的旅游路线</h2>
-            <img className="chart-image" src="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fsafe-img.xhscdn.com%2Fbw%2Fc7a6709c-ce99-404c-9866-00c7e3db5523%3FimageView2%2F2%2Fw%2F1080%2Fformat%2Fjpg&refer=http%3A%2F%2Fsafe-img.xhscdn.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1729934074&t=7556ed3ea36603972f1d503527dd7ac9" alt="" />
+            <h2>{data.itinerary.tripName}</h2>
+            <TripMap locations={defaultLocations} />
           </div>
         ) : (
           <div className="modern-schedule-container">
             <h2 className="modern-title">{data.title}</h2>
             {isLoading ? (<WaveLoader />) : schedule.length > 0 ? (
-              renderSchedule(schedule)
+              <ItineraryDisplay itinerary={data.itinerary} />
             ) : (
               <p>暂无数据</p>
             )}

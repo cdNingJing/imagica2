@@ -25,6 +25,7 @@ import CustomTextNode from './CustomTextNode';
 import styles from './Canvas.module.scss';
 import dagre from 'dagre';
 import { travelItinerary } from "../store/travelItinerary"
+import { useNodeStore } from '../store/nodeStore';
 
 const nodeTypes = {
   customShape: CustomShapeNode,
@@ -171,34 +172,9 @@ const Canvas: React.FC = () => {
   const { updateItemPosition } = useCanvas();
   const [draggedItem, setDraggedItem] = useState<any | null>(null);
   const { shapes, updateShapePosition, updateShapeLayer, updateShapeZIndex } = useShapeStore();
-
-  // const nodes: any[] = useMemo(() => shapes.map((shape: any) => ({
-  //   id: shape.id,
-  //   type: 'customShape',
-  //   position: { x: shape.x, y: shape.y },
-  //   width: 100,
-  //   height: 100,
-  //   draggable: true,
-  //   data: { 
-  //     shape: shape,
-  //     text: shape.text,
-  //     backgroundColor: shape.backgroundColor || '#4a4a4a'
-  //   },
-  // })), [shapes]);
-
-  // const [nodesData, setNodesData] = useState<Node[]>(nodes);
+  const { selectedNodeId } = useNodeStore();
 
   const [visibleShapes, setVisibleShapes] = useState<Set<string>>(new Set(shapes.map(shape => shape.isVisible ? shape.id : '')));
-
-  // const onNodesChange: OnNodesChange = useCallback(
-  //   (changes) => {
-  //     const updatedNodes = applyNodeChanges(changes, nodes);
-  //     updatedNodes.forEach(node => {
-  //       updateShapePosition(node.id, node.position.x, node.position.y);
-  //     });
-  //   },
-  //   [nodes, updateShapePosition]
-  // );
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (draggedItem) {
@@ -254,78 +230,18 @@ const Canvas: React.FC = () => {
     });
   }, [shapes]);
 
-  // const onNodesChangeData: any = useCallback(
-  //   (changes: any) => setNodesData((nds: any) => applyNodeChanges(changes, nds)),
-  //   []
-  // );
-
-  // const initialNodes: Node[] = [
-  //   {
-  //     id: '1',
-  //     type: 'textNode',
-  //     data: { label: 'Input Node 1' },
-  //     position: { x: 100, y: 100 },
-  //   },
-  //   {
-  //     id: '2',
-  //     type: 'textNode',
-  //     data: { label: 'Input Node 2' },
-  //     position: { x: 100, y: 200 },
-  //   },
-  //   {
-  //     id: '3',
-  //     type: 'textNode',
-  //     data: { label: 'Middle Node' },
-  //     position: { x: 300, y: 150 },
-  //   },
-  //   {
-  //     id: '4',
-  //     type: 'textNode',
-  //     data: { label: 'Output Text Node' },
-  //     position: { x: 500, y: 150 },
-  //   },
-  // ];
-
-  // const initialEdges: Edge[] = [
-  //   { 
-  //     id: 'e1-3', 
-  //     source: '1', 
-  //     target: '3', 
-  //     sourceHandle: 'right',
-  //     targetHandle: 'left',
-  //     type: 'smoothstep'
-  //   },
-  //   { 
-  //     id: 'e2-3', 
-  //     source: '2', 
-  //     target: '3', 
-  //     sourceHandle: 'right',
-  //     targetHandle: 'left',
-  //     type: 'smoothstep'
-  //   },
-  //   {
-  //     id: 'e3-4',
-  //     source: '3',
-  //     target: '4',
-  //     sourceHandle: 'right',
-  //     targetHandle: 'left',
-  //     type: 'smoothstep',
-  //     animated: true 
-  //   },
-  // ];
-
-  const onNodesChange: any = useCallback(
-    (changes: any[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
-    []
+  const onNodesChange: OnNodesChange = useCallback(
+    (changes) => {
+      const updatedNodes = applyNodeChanges(changes, nodes);
+      setNodes(updatedNodes);
+    },
+    [nodes]
   );
 
-  const onEdgesChange: any = useCallback(
+  const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),
     []
   );
-
-  // const [nodes, setNodes] = useState<Node[]>(initialNodes);
-  // const [edges, setEdges] = useState<Edge[]>(initialEdges);
 
   const rearrangeNodes = useCallback(() => {
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
@@ -336,16 +252,29 @@ const Canvas: React.FC = () => {
     setNodes([...layoutedNodes]);
     setEdges([...layoutedEdges]);
 
-    // 使用 requestAnimationFrame 确保在下一帧执行视图调整
     requestAnimationFrame(() => {
       if (reactFlowInstance) {
         reactFlowInstance.fitView({
-          padding: 0.2,  // 可以调整这个值来改变边距
-          duration: 800  // 动画持续时间，单位为毫秒
+          padding: 0.3,
+          duration: 800
         });
       }
     });
   }, [nodes, edges, reactFlowInstance]);
+
+  useEffect(() => {
+    if (selectedNodeId && reactFlowInstance) {
+      const selectedNode = nodes.find(node => node.id === selectedNodeId);
+      if (selectedNode) {
+        reactFlowInstance.fitView({
+          padding: 0.4,
+          duration: 800,
+          maxZoom: 1.4,
+          nodes: [selectedNode],
+        });
+      }
+    }
+  }, [selectedNodeId, nodes]);
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
@@ -357,6 +286,17 @@ const Canvas: React.FC = () => {
         nodeTypes={nodeTypes}
         fitView
         onInit={(instance: any) => setReactFlowInstance(instance)}
+        // 使用 nodesDraggable 属性控制节点是否可拖动
+        nodesDraggable={!selectedNodeId}
+        // 控制是否可以创建新的连接
+        nodesConnectable={!selectedNodeId}
+        // 控制是否可以选择多个节点
+        multiSelectionKeyCode={null}
+        // 控制画布的缩放和平移
+        zoomOnScroll={!selectedNodeId}
+        zoomOnPinch={!selectedNodeId}
+        panOnScroll={!selectedNodeId}
+        panOnDrag={!selectedNodeId}
       >
         <Background />
         <MiniMap />

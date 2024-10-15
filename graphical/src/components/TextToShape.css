@@ -5,26 +5,10 @@
   position: relative;
   height: 100%;
   background-color: #ffffff;  /* 设置背景色 */
-  box-shadow: 
-    0 0 0 8px #000000,  /* 内阴影模仿手机边框 */
-    0 20px 50px rgba(0, 0, 0, 0.3);  /* 外阴影给予浮动感 */
   transition: all 0.3s ease-in-out;
 }
 
-.container::after {
-  content: '';
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40%;
-  height: 5px;
-  background-color: #000;
-  border-radius: 10px;
-}
-
 .container:hover {
-  transform: translateY(-10px);
   box-shadow: 
     0 0 0 8px #000000,
     0 30px 60px rgba(0, 0, 0, 0.4);
@@ -38,6 +22,7 @@
   overflow: hidden;
   position: relative;
   background-color: #e0e0e0;
+  cursor: pointer;
 }
 
 .shape-list-item svg {

@@ -1,0 +1,68 @@
+.itinerary-display {
+  font-family: Arial, sans-serif;
+  max-width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 20px;
+  border-left: 2px solid #ccc;
+}
+
+.event {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.event::before {
+  content: '';
+  position: absolute;
+  left: -26px;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #007bff;
+}
+
+.event-date {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+
+.event-content {
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 0.9em;
+}
+
+.notes {
+  margin-top: 30px;
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 5px;
+  font-size: 0.9em;
+}
+
+h1 {
+  font-size: 1.5em;
+  color: #007bff;
+}
+
+h2 {
+  font-size: 1.3em;
+  color: #007bff;
+}
+
+h3 {
+  font-size: 1.1em;
+  color: #007bff;
+}
+
+p {
+  margin: 5px 0;
+}

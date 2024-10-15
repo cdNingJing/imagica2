@@ -1,0 +1,54 @@
+.itinerary-display {
+  font-family: Arial, sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 30px;
+  border-left: 2px solid #ccc;
+}
+
+.city-section {
+  margin-bottom: 30px;
+}
+
+.event {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.event::before {
+  content: '';
+  position: absolute;
+  left: -36px;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #007bff;
+}
+
+.event-date {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.event-content {
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.notes {
+  margin-top: 30px;
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+h1, h2, h3 {
+  color: #007bff;
+}
