@@ -146,87 +146,11 @@ export const ScrollableComponent: React.FC<any> = ({ data }) => {
   }, []);
 
   useEffect(() => {
-    if (data.itinerary) {
-      const convertedSchedule = convertItineraryToSchedule(data.itinerary);
-      setSchedule(convertedSchedule);
-    }
-  }, [data.itinerary]);
-
-  const fetchData = useCallback(async () => {
-    if (!data.centerText) return;
-    if (data && data.schedule) {
-      // 如果已经有行程数据，直接使用现有数据
-      setAiResponse(JSON.stringify(data.schedule));
-      return;
-    }
-
-    const contents = `
-      您是专业的智能管家，需要将行程安排成合理的时间表。请严格按照以下JSON格式返回：
-      [
-        {
-          "day": "第1天",
-          "schedule": [
-            {"time": "08:00", "activity": "具体活动"},
-            {"time": "09:30", "activity": "具体活动"},
-            {"time": "12:00", "activity": "具体活动"},
-            {"time": "13:30", "activity": "具体活动"},
-            {"time": "17:00", "activity": "具体活动"},
-            {"time": "18:30", "activity": "具体活动"}
-          ]
-        }
-      ]
-      请根据用户提供的信息，填充具体的活动内容。只返回JSON数据，不要添加任何额外的文字说明。
-    `;
-
-    setIsLoading(true);
-    setAiResponse('');
-
-    try {
-      const aiStream = callAIService(data.centerText, contents, true);
-      let fullResponse = '';
-      for await (const chunk of aiStream) {
-        fullResponse += chunk;
-        setAiResponse(fullResponse);
-      }
-      
-      const parsedSchedule = parseSchedule(fullResponse);
-      updateShapeSchedule(data.id, parsedSchedule);
-    } catch (error) {
-      console.error('生成 AI 响应时出错:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [data.centerText, data.title, updateShapeSchedule, getShapeByTitle, parseSchedule]);
-
-  useEffect(() => {
-    console.log("111 itinerary", data)
-    // fetchData();
-  }, [fetchData]);
-
-  const renderSchedule = useCallback((scheduleData: any[]) => (
-    <div className="modern-timeline">
-      {scheduleData.map((day, dayIndex) => (
-        <div key={dayIndex} className="modern-day">
-          <h3 className="modern-day-title">{day.day}</h3>
-          <div className="modern-schedule-list">
-            {day.schedule.map((item: ScheduleItem, itemIndex: number) => (
-              <div key={itemIndex} className="modern-schedule-item">
-                <div className="modern-time">{item.time}</div>
-                <div className="modern-activity">{item.activity}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  ), []);
-
-  useEffect(() => {
+    console.log("travelItinerary data:", data);
     if (data.itinerary) {
       const convertedSchedule = convertItineraryToSchedule(data.itinerary);
       setSchedule(convertedSchedule);
       
-      // 从���程中提取位置信息
       const extractedLocations = data.itinerary.cities.map((city: any) => ({
         name: city?.name || '成都',
         lat: city?.latitude || 30.572816,
@@ -234,7 +158,7 @@ export const ScrollableComponent: React.FC<any> = ({ data }) => {
       }));
       setLocations(extractedLocations);
     }
-  }, [data.itinerary]);
+  }, [data]);
 
   const defaultLocations: any[] = [
     { name: "大阪", lat: 34.6937, lng: 135.5023 },
@@ -252,8 +176,8 @@ export const ScrollableComponent: React.FC<any> = ({ data }) => {
       <div className="content">
         {isToggled ? (
           <div>
-            <h2>{data.itinerary.tripName}</h2>
-            <TripMap locations={defaultLocations} />
+            <h2>{data.itinerary?.tripName}</h2>
+            <TripMap locations={locations.length > 0 ? locations : defaultLocations} />
           </div>
         ) : (
           <div className="modern-schedule-container">
