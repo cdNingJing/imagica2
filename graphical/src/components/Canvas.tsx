@@ -28,15 +28,14 @@ import dagre from 'dagre';
 import { travelItinerary } from "../store/travelItinerary"
 import { useNodeStore } from '../store/nodeStore';
 import CityNode from './CityNode';
+import AttractionNode from './AttractionNode';
 
 const nodeTypes = {
   customShape: CustomShapeNode,
-  textNode: CustomTextNode,
   cityNode: CityNode,
+  attractionNode: AttractionNode,
+  textNode: CustomTextNode,  // 如果使用的话
 };
-
-const PHONE_WIDTH = 300;
-const PHONE_HEIGHT = 600;
 
 const convertItineraryToGraph = (itinerary: typeof travelItinerary): { nodes: Node[], edges: Edge[] } => {
   const nodes: Node[] = [];
@@ -49,11 +48,9 @@ const convertItineraryToGraph = (itinerary: typeof travelItinerary): { nodes: No
     data: { 
       label: `${itinerary.tripName}\n${itinerary.duration}`,
       itinerary: itinerary,
-      width: PHONE_WIDTH,
-      height: PHONE_HEIGHT
     },
     position: { x: 0, y: 0 },
-    style: { width: PHONE_WIDTH, height: PHONE_HEIGHT }
+    style: { width: 360, height: 640 }
   };
   nodes.push(tripNode);
 
@@ -66,7 +63,8 @@ const convertItineraryToGraph = (itinerary: typeof travelItinerary): { nodes: No
         type: 'cities',
         city: city,
       },
-      position: { x: 0, y: (index + 1) * 100 },
+      position: { x: 370, y: index * 250 },  // 增加垂直间距
+      style: { width: 200, height: 80 }
     };
     nodes.push(cityNode);
 
@@ -81,9 +79,12 @@ const convertItineraryToGraph = (itinerary: typeof travelItinerary): { nodes: No
     city.attractions.forEach((attraction, attrIndex) => {
       const attractionNode: Node = {
         id: attraction.id,
-        type: 'textNode',
-        data: { label: `${attraction.name}\n${attraction.duration}` },
-        position: { x: 200, y: (index * 200) + (attrIndex * 100) },
+        type: 'attractionNode',
+        data: {
+          attraction: attraction,
+        },
+        position: { x: 600, y: (index * 250) + (attrIndex * 180) },  // 调整位置和间距
+        style: { width: 250, height: 130 }
       };
       nodes.push(attractionNode);
 
@@ -96,35 +97,6 @@ const convertItineraryToGraph = (itinerary: typeof travelItinerary): { nodes: No
     });
   });
 
-  // 创建活动节点和连接
-  itinerary.activities.forEach((activity, index) => {
-    const activityNode: Node = {
-      id: activity.id,
-      type: 'textNode',
-      data: { label: `${activity.name}\n${activity.duration}` },
-      position: { x: 400, y: index * 100 },
-    };
-    nodes.push(activityNode);
-
-    // 查找与活动位置匹配的城市节点
-    const cityNode = nodes.find(node => 
-      node.type === 'cityNode' && 
-      node.data.city && 
-      node.data.city.name === activity.location
-    );
-
-    if (cityNode) {
-      edges.push({
-        id: `e${cityNode.id}-${activityNode.id}`,
-        source: cityNode.id,
-        target: activityNode.id,
-        type: 'smoothstep',
-      });
-    } else {
-      console.warn(`未找到与活动 "${activity.name}" 匹配的城市节点`);
-    }
-  });
-
   return { nodes, edges };
 };
 
@@ -133,14 +105,11 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'LR') => 
   dagreGraph.setDefaultEdgeLabel(() => ({}));
 
   const isHorizontal = direction === 'LR';
-  // 增加节点间的间距
   dagreGraph.setGraph({ rankdir: direction });
 
   nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { 
-      width: node?.style?.width || 172, 
-      height: node?.style?.height || 36 
-    });
+    const { width, height } = calculateNodeDimensions(node);
+    dagreGraph.setNode(node.id, { width, height });
   });
 
   edges.forEach((edge) => {
@@ -154,32 +123,41 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'LR') => 
     node.targetPosition = isHorizontal ? 'left' : 'top';
     node.sourcePosition = isHorizontal ? 'right' : 'bottom';
 
-    const nodeWidth = node?.style?.width || 172;
-    const nodeHeight = node?.style?.height || 36;
-
-    // 为不同类型的节点添加额外的偏移
-    const getNodeOffset = (nodeType: string) => {
-      switch (nodeType) {
-        case 'cityNode':
-          return { x: 240, y: 0 };
-        case 'textNode':
-          return { x: 280, y: 50 };
-        default:
-          return { x: 100, y: 50 };
-      }
-    };
-
-    const { x: xOffset, y: yOffset } = getNodeOffset(node.type);
-
+    // 将 dagre 节点位置（中心锚点）转换为 React Flow 节点锚点（左上角）
+    const { width, height } = calculateNodeDimensions(node);
     node.position = {
-      x: (nodeWithPosition.x - nodeWidth / 2) + xOffset,
-      y: (nodeWithPosition.y - nodeHeight / 2) + yOffset,
+      x: nodeWithPosition.x - width / 2,
+      y: nodeWithPosition.y - height / 2,
     };
+
+    // 将计算出的尺寸应用到节点上
+    node.style = { ...node.style, width, height };
 
     return node;
   });
 
   return { nodes, edges };
+};
+
+const calculateNodeDimensions = (node: Node): { width: number; height: number } => {
+  const defaultDimensions = {
+    customShape: { width: 360, height: 640 },
+    cityNode: { width: 200, height: 80 },
+    attractionNode: { width: 200, height: 80 },
+    textNode: { width: 200, height: 80 },
+  };
+
+  const nodeWidth = node.style?.width ?? node.width;
+  const nodeHeight = node.style?.height ?? node.height;
+
+  console.log("nodeWidth:", nodeWidth);
+  console.log("nodeHeight:", nodeHeight);
+
+  if (typeof nodeWidth === 'number' && typeof nodeHeight === 'number') {
+    return { width: nodeWidth, height: nodeHeight };
+  }
+
+  return defaultDimensions[node.type as keyof typeof defaultDimensions] || { width: 100, height: 50 };
 };
 
 const edgeOptions = {
@@ -195,11 +173,11 @@ const Canvas: React.FC = () => {
   const [reactFlowInstance, setReactFlowInstance] = useState<any | null>(null);
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
     const { nodes, edges } = convertItineraryToGraph(travelItinerary);
-    return getLayoutedElements(nodes, edges);
+    return getLayoutedElements(nodes, edges, 'LR');
   }, []);
 
-  const [nodes, setNodes] = useState<Node[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
+  const [nodes, setNodes] = useState<Node[]>(initialNodes);
+  const [edges, setEdges] = useState<Edge[]>(initialEdges);
 
   const { updateItemPosition } = useCanvas();
   const [draggedItem, setDraggedItem] = useState<any | null>(null);
@@ -250,20 +228,16 @@ const Canvas: React.FC = () => {
   const rearrangeNodes = useCallback(() => {
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
       nodes,
-      edges
+      edges,
+      'LR'
     );
 
     setNodes([...layoutedNodes]);
     setEdges([...layoutedEdges]);
 
-    requestAnimationFrame(() => {
-      if (reactFlowInstance) {
-        reactFlowInstance.fitView({
-          padding: 0.3,
-          duration: 800
-        });
-      }
-    });
+    if (reactFlowInstance) {
+      reactFlowInstance.fitView();
+    }
   }, [nodes, edges, reactFlowInstance]);
 
   useEffect(() => {
@@ -281,7 +255,7 @@ const Canvas: React.FC = () => {
   }, [selectedNodeId, nodes]);
 
   useEffect(() => {
-    console.log("travelItinerary 已更新:", travelItinerary);
+    console.log("111 travelItinerary 已更新:", travelItinerary);
     const { nodes: newNodes, edges: newEdges } = convertItineraryToGraph(travelItinerary);
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(newNodes, newEdges);
     setNodes(layoutedNodes);
@@ -299,13 +273,9 @@ const Canvas: React.FC = () => {
         defaultEdgeOptions={edgeOptions}
         fitView
         onInit={(instance: any) => setReactFlowInstance(instance)}
-        // 使用 nodesDraggable 属性控制节点是否可拖动
         nodesDraggable={!selectedNodeId}
-        // 控制是否可以创建新的连接
         nodesConnectable={!selectedNodeId}
-        // 控制是否可以选择多个节点
         multiSelectionKeyCode={null}
-        // 控制画布的缩放和平移
         zoomOnScroll={!selectedNodeId}
         zoomOnPinch={!selectedNodeId}
         panOnScroll={!selectedNodeId}
@@ -318,7 +288,7 @@ const Canvas: React.FC = () => {
           onClick={rearrangeNodes}
           className={styles.rearrangeButton}
         >
-          整理布局
+          重新排列
         </button>
 
         <ShapeThumbnail

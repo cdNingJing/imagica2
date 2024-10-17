@@ -1,0 +1,79 @@
+.attraction-node {
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: white;
+  width: 250px;
+  font-size: 12px;
+  color: #333;
+}
+
+.attraction-node-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.attraction-node__title {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.attraction-node__info {
+  margin-bottom: 3px;
+}
+
+.attraction-node__description {
+  font-size: 11px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.edit-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-popup input,
+.edit-popup textarea {
+  width: 100%;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.edit-popup textarea {
+  height: 60px;
+  resize: vertical;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.save-btn,
+.cancel-btn {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.save-btn {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.cancel-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.save-btn:hover,
+.cancel-btn:hover {
+  opacity: 0.8;
+}

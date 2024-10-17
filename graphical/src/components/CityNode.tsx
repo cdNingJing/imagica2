@@ -9,6 +9,11 @@ const CityNode: React.FC<NodeProps> = ({ data }) => {
   const [duration, setDuration] = useState(data.city.duration);
   const nodeRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    setName(data.city.name);
+    setDuration(data.city.duration);
+  }, [data.city.name, data.city.duration]);
+
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsEditing(true);
@@ -31,6 +36,7 @@ const CityNode: React.FC<NodeProps> = ({ data }) => {
         city.name = name;
         city.duration = duration;
       }
+      return draft;  // 确保返回更新后的草稿
     });
   }, [data.city.id, name, duration]);
 
@@ -68,12 +74,15 @@ const CityNode: React.FC<NodeProps> = ({ data }) => {
             </div>
           </div>
         ) : (
-          <>
-            <div className="city-name">{data.city.name}</div>
-            <div className="city-duration">{data.city.duration}</div>
-          </>
+          <></>
         )}
+
+        <>
+          <div className="city-name">{name}</div>
+          <div className="city-duration">{duration}</div>
+        </>
       </div>
+
       <Handle type="source" position={Position.Right} />
     </div>
   );
